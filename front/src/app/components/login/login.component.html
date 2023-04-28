@@ -1,0 +1,17 @@
+<div class="mainDiv">
+    <form [formGroup]="loginForm" (ngSubmit)="registerAccount()" >
+        <mat-form-field class="oneLine">
+            <mat-label>Username</mat-label>
+            <input matInput type="text" name="username" formControlName="username">
+        </mat-form-field>
+    
+        <mat-form-field class="oneLine">
+            <mat-label>Password</mat-label>
+            <input matInput type="text" name="password" formControlName="password">
+        </mat-form-field>
+        <button color="primary" type="submit" mat-raised-button class="oneLine">CREATE ACCOUNT</button>
+    
+        <a routerLink="/register">DON'T HAVE AN ACCOUNT? REGISTER NOW.</a>
+        
+    </form>
+</div>

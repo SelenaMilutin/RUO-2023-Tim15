@@ -3,6 +3,7 @@ import { registerLocaleData } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import * as AWS from 'aws-sdk'
+import { keys } from 'src/environments/keys';
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
@@ -33,16 +34,18 @@ export class RegisterComponent implements OnInit {
     this.loadtobase()
   }
 
-  loadtobase(): void {
+  async loadtobase(): Promise<void> {
     // Load the AWS SDK for Node.js
     // Set the region 
     AWS.config.update({region: 'Frankfurt',
-                      apiVersion: "2010-12-01",
-                      accessKeyId: "process.env.AWS_SECRET_KEY"});
-                      // accessSecretKey: "process.env.AWS_SECRET_KEY"});
+                      apiVersion: "2012-08-10",
+                      accessKeyId: keys.accessKey,
+                      secretAccessKey: keys.secretKey});
   
     // Create the DynamoDB service object
     var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
+    var ddb2 = new AWS.DynamoDB.DocumentClient();
+
   
     var params = {
       TableName: 'users_the_second_great_table',
@@ -61,13 +64,13 @@ export class RegisterComponent implements OnInit {
          "S": this.registerAccountForm.value.name
         },
         "lastname": {
-         "S": this.registerAccountForm.value.lastname
+         "S": this.registerAccountForm.value.surname
         },
         "birthday": {
          "S": this.registerAccountForm.value.birthday
         },
         "email": {
-         "S": this.registerAccountForm.value.gmail
+         "S": this.registerAccountForm.value.email
         },
         "password": {
          "S": this.registerAccountForm.value.password
@@ -75,15 +78,33 @@ export class RegisterComponent implements OnInit {
        }
     };
   
-    // Call DynamoDB to add the item to the table
-    ddb.putItem(params, function(err: any, data: any) {
-      if (err) {
-        console.log("Error", err);
-      } else {
-        console.log("Success", data);
-      }
-    });
-  
+    // // Call DynamoDB to add the item to the table
+    // ddb.putItem(params, function(err: any, data: any) {
+    //   if (err) {
+    //     console.log("Error", err);
+    //   } else {
+    //     console.log("Success", data);
+    //   }
+    // });
+
+    //drugi pokusaj
+    let body;
+    let statusCode = '200';
+    const headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+    };
+
+    try {
+        
+      body = await ddb2.put(params).promise();
+        
+    } catch (err:any) {
+        statusCode = '400';
+        body = err.message;
+    } finally {
+        body = JSON.stringify(body);
+    } 
   }
   
 }

@@ -53,7 +53,7 @@ export class RegisterComponent implements OnInit {
   async loadtobase(): Promise<void> {
     // Load the AWS SDK for Node.js
     // Set the region 
-    AWS.config.update({region: 'GLOBAL',
+    AWS.config.update({region: 'eu-central-1',
                       apiVersion: "2012-08-10",
                       accessKeyId: keys.accessKey,
                       secretAccessKey: keys.secretKey});
@@ -68,7 +68,7 @@ export class RegisterComponent implements OnInit {
         "username": {
          "S": this.registerAccountForm.value.username
         },
-        "galeryName": {
+        "galleryName": {
          "S": "root"
         },
         "document": {

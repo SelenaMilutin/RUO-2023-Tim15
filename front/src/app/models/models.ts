@@ -31,7 +31,7 @@ export interface Document {
  "username": {
   "S": "nana"
  },
- "galeryName": {
+ "galleryName": {
   "S": "root"
  },
  "document": {

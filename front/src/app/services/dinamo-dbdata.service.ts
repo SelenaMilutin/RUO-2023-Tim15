@@ -31,7 +31,7 @@ constructor() {
     // provide your access key and secret access key as obtained in the previous step
     AWS.config.credentials = new AWS.Credentials(keys.accessKey, keys.secretKey);
     AWS.config.update({
-    region: 'frankfurt'
+    region: 'eu-central-1'
     });
 
     this.dynamodb = new AWS.DynamoDB();
@@ -45,33 +45,17 @@ public getItems(): Observable<any[]> {
 public create(user:AppUser): Observable<any[]> {
 
     const params = {
-    TableName: 'users_the_second_great_table',
+    TableName: this.params.TableName,
     Item: {
-      "username": {
-       "S": user.username
-      },
-      "galeryName": {
-       "S": "root"
-      },
-      "document": {
-       "L": [
-       ]
-      },
-      "name": {
-       "S": user.name
-      },
-      "lastname": {
-       "S": user.lastname
-      },
-      "birthday": {
-       "S": user.birthday
-      },
-      "email": {
-       "S": user.email
-      },
-      "password": {
-       "S": user.password
-      }
+      "username": user.username,
+      "galleryName": "root",
+      "document": [
+       ],
+      "name": user.name,
+      "lastname": user.lastname,
+      "birthday": user.birthday,
+      "email": user.email,
+      "password": user.password
      }
     };
 
@@ -111,7 +95,7 @@ private update(user:AppUser) {
     const updateExpression = `set ${updateArray.join(',')}`;
 
     const params = {
-    TableName: 'users_the_second_great_table',
+    TableName: this.params.TableName,
     Key: {
         id: user.username
     },
@@ -133,7 +117,7 @@ private update(user:AppUser) {
 
 public remove(item:AppUser) {
     const params = {
-    TableName: 'Movies',
+    TableName: this.params.TableName,
     Key: {
         id: item.username
     },

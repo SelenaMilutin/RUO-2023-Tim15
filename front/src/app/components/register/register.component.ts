@@ -2,7 +2,9 @@
 import { registerLocaleData } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import * as AWS from 'aws-sdk'
+import { bool } from 'aws-sdk/clients/signer';
 import { DinamoDBdataService } from 'src/app/services/dinamo-dbdata.service';
 import { keys } from 'src/environments/keys';
 @Component({
@@ -12,7 +14,8 @@ import { keys } from 'src/environments/keys';
 })
 export class RegisterComponent implements OnInit {
 
-  constructor(private readonly dinamoBDservice: DinamoDBdataService) { }
+  constructor(private readonly dinamoBDservice: DinamoDBdataService,
+              private router: Router) { }
 
   registerAccountForm: FormGroup = new FormGroup({
     name: new FormControl('', Validators.required),
@@ -32,8 +35,46 @@ export class RegisterComponent implements OnInit {
       alert("Podaci")
       return
     }
+  if (this.registerAccountForm.value.password != this.registerAccountForm.value.confirmPassword) {
+    alert("Lozinke nisu iste")
+    return
+  }
     // this.addWithService()
-    this.loadtobase()
+    this.userExsists()
+  }
+  userExsists(): any {
+    AWS.config.update({region: 'eu-central-1',
+                      apiVersion: "2012-08-10",
+                      accessKeyId: keys.accessKey,
+                      secretAccessKey: keys.secretKey});
+
+    let ddb = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
+    let params = {
+      // Specify which items in the results are returned.
+      FilterExpression: "username = :u OR email = :p",
+      // Define the expression attribute value, which are substitutes for the values you want to compare.
+      ExpressionAttributeValues: {
+        ":u": {S: this.registerAccountForm.value.username || ""},
+        ":p": {S: this.registerAccountForm.value.email || ""}
+      },
+      // Set the projection expression, which are the attributes that you want.
+      ProjectionExpression: "username",
+      TableName: "users_the_second_great_table",
+    };
+    let status: boolean = true
+    ddb.scan(params, (err, data) => {
+      if (err) {
+        console.log("Error", err);
+        alert("Neuspesna konekcija")
+      } else {
+        if (data.Items?.length == 0) {
+          this.loadtobase()
+          return
+        }
+        alert("Krisnicko ime zauzeto")
+      }
+    });
+    return status
   }
   addWithService() {
     this.dinamoBDservice.create({
@@ -92,34 +133,19 @@ export class RegisterComponent implements OnInit {
         }
        }
     };
-  
+    const that = this
     // // Call DynamoDB to add the item to the table
-    await ddb.putItem(params, function(err: any, data: any) {
+    ddb.putItem(params, function(err: any, data: any) {
       if (err) {
         console.log("Error", err);
+        alert("Greska pri upisivanju")
       } else {
         console.log("Success", data);
+        alert("Napravljen nalog. Ulogujte se")
+        
+        that.router.navigate(['/']);
       }
     });
-
-    //drugi pokusaj
-  //   let body;
-  //   let statusCode = '200';
-  //   const headers = {
-  //       'Content-Type': 'application/json',
-  //       'Access-Control-Allow-Origin': '*'
-  //   };
-
-  //   try {
-        
-  //     body = await ddb2.put(params).promise();
-        
-  //   } catch (err:any) {
-  //       statusCode = '400';
-  //       body = err.message;
-  //   } finally {
-  //       body = JSON.stringify(body);
-  //   } 
   }
   
 }

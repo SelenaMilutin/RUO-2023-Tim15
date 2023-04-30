@@ -1,0 +1,12 @@
+<input type="file" class="file-input"
+       (change)="selectFile($event)" #fileUpload multiple>
+
+<div class="file-upload">
+
+    <button mat-button class="upload-btn"
+        (click)="fileUpload.click()"> <mat-icon>note_add</mat-icon> Upload</button>
+   <p *ngIf="uploadSuccess && uploadTried">Uploaded successfully.</p>
+   <p *ngIf="!uploadSuccess && uploadTried">Uploaded successfully.</p>
+
+
+</div>

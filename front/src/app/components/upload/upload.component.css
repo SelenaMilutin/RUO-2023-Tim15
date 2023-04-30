@@ -1,0 +1,13 @@
+button {
+    background-color: black;
+    color: white;
+}
+
+button:hover {
+    background-color: #6A7A9E;
+}
+
+
+.file-input {
+    display: none;
+  }

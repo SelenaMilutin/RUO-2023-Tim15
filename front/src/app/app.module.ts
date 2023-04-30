@@ -8,22 +8,26 @@ import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { ToolbarComponent } from './components/toolbar/toolbar.component';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations'
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { UploadComponent } from './components/upload/upload.component'
+import { UploadService } from './services/upload.service';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     RegisterComponent,
-    ToolbarComponent
+    ToolbarComponent,
+    UploadComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     MaterialModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    HttpClientModule
   ],
   providers: [
     {
@@ -42,6 +46,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations'
     //   useClass: ErrorInterceptor,
     //   multi: true,
     // }
+    UploadService
   ],
   bootstrap: [AppComponent]
 })

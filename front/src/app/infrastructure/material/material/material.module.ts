@@ -52,7 +52,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     MatGridListModule,
     MatBadgeModule, 
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatIconModule
   ],
   exports: [
     MatButtonModule,
@@ -80,7 +81,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     MatGridListModule,
     MatBadgeModule,
     FormsModule, 
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatIconModule
   ],
 })
 export class MaterialModule {}

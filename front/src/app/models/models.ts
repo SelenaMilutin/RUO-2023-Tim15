@@ -1,4 +1,4 @@
-export interface User {
+export interface AppUser {
     name: string
     lastname: string
     birthday: string
@@ -31,7 +31,7 @@ export interface Document {
  "username": {
   "S": "nana"
  },
- "galeryName": {
+ "galleryName": {
   "S": "root"
  },
  "document": {

@@ -75,7 +75,7 @@ export class RegisterComponent implements OnInit {
          "L": [
          ]
         },
-        "name": {
+        "namee": {
          "S": this.registerAccountForm.value.name
         },
         "lastname": {

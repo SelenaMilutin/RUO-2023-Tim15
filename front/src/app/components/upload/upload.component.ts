@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { UploadService } from 'src/app/services/upload.service';
 
 @Component({
@@ -18,6 +18,9 @@ export class UploadComponent implements OnInit {
 
   uploadSuccess : boolean = false;
   uploadTried :  boolean = false;
+
+  @Input()
+  currentAlbumName : string = localStorage.getItem('user') + '-' + 'root';
 
   constructor(private readonly http: HttpClient, private uploadService: UploadService) {}
 
@@ -44,7 +47,7 @@ export class UploadComponent implements OnInit {
   upload() {
     if (this.selectedFiles != undefined ) { 
       const file = this.selectedFiles.item(0); 
-      this.uploadSuccess = this.uploadService.uploadFile(file);
+      this.uploadSuccess = this.uploadService.uploadFile(file, this.currentAlbumName);
       this.uploadTried = true;
     }
   }

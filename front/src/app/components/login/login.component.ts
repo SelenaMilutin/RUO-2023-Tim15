@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import * as AWS from 'aws-sdk';
 import { keys } from 'src/environments/keys';
 import { json } from 'stream/consumers';
@@ -11,7 +12,7 @@ import { json } from 'stream/consumers';
 })
 export class LoginComponent implements OnInit {
 
-  constructor() { }
+  constructor(private readonly router:Router) { }
 
   loginForm = new FormGroup({
     username: new FormControl('', Validators.required),
@@ -46,7 +47,7 @@ export class LoginComponent implements OnInit {
       ProjectionExpression: "username, password, lastname, birthday",
       TableName: "users",
     };
-    
+    let that = this
     ddb.scan(params, (err, data) => {
       if (err) {
         console.log("Error", err);
@@ -64,6 +65,7 @@ export class LoginComponent implements OnInit {
         //   "username": data.Items[0]["username"].S
         // }))
         localStorage.setItem("user", data.Items[0]["username"].S || "")
+        that.router.navigate(['/upload']);
       }
     });
   }

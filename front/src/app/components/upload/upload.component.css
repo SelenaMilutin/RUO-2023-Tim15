@@ -1,0 +1,17 @@
+button {
+    background-color: black;
+    color: white;
+}
+
+button:hover {
+    background-color: #6A7A9E;
+}
+
+
+.file-input {
+    display: none;
+}
+
+p {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}

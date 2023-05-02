@@ -74,6 +74,9 @@ bin/
 /front/libpeerconnection.log
 testem.log
 /front/typings
+# fajlovi za kljuceve
+/front/src/assets/keyz
+/front/src/environments/keys.ts
 
 # System files
 .DS_Store

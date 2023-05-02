@@ -44,7 +44,7 @@ export class LoginComponent implements OnInit {
       },
       // Set the projection expression, which are the attributes that you want.
       ProjectionExpression: "username, password, lastname, birthday",
-      TableName: "users_the_second_great_table",
+      TableName: "users",
     };
     
     ddb.scan(params, (err, data) => {

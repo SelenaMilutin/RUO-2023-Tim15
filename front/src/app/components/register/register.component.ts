@@ -59,7 +59,7 @@ export class RegisterComponent implements OnInit {
       },
       // Set the projection expression, which are the attributes that you want.
       ProjectionExpression: "username",
-      TableName: "users_the_second_great_table",
+      TableName: "users",
     };
     let status: boolean = true
     ddb.scan(params, (err, data) => {
@@ -101,20 +101,12 @@ export class RegisterComponent implements OnInit {
   
     // Create the DynamoDB service object
     var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
-    var ddb2 = new AWS.DynamoDB.DocumentClient();
   
     var params = {
-      TableName: 'users_the_second_great_table',
+      TableName: 'users',
       Item: {
         "username": {
          "S": this.registerAccountForm.value.username
-        },
-        "galleryName": {
-         "S": "root"
-        },
-        "document": {
-         "L": [
-         ]
         },
         "namee": {
          "S": this.registerAccountForm.value.name

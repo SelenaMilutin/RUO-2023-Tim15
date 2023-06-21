@@ -76,20 +76,7 @@ export class RegisterComponent implements OnInit {
     });
     return status
   }
-  addWithService() {
-    this.dinamoBDservice.create({
-      name: this.registerAccountForm.value.name,
-      lastname: this.registerAccountForm.value.surname,
-      birthday: this.registerAccountForm.value.birthday,
-      username: this.registerAccountForm.value.username,
-      email: this.registerAccountForm.value.email,
-      password: this.registerAccountForm.value.password,
-      galleries: []
-    }).subscribe((nesto:any)=>
-    {
-      console.log(nesto);
-    })
-  }
+  
 
   async loadtobase(): Promise<void> {
     // Load the AWS SDK for Node.js

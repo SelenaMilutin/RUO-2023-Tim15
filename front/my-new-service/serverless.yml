@@ -38,8 +38,10 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
+        - sns:Publish
       Resource:
         - "Fn::GetAtt": [users, Arn]
+        - arn:aws:sns:eu-central-1:260436118818:DatabaseTopic
 
 
 # you can overwrite defaults here
@@ -101,6 +103,7 @@ functions:
             - Authorization
           allowedMethods:
             - POST
+      
       # events:
       # - sns:
       #     arn: !Ref SuperTopic

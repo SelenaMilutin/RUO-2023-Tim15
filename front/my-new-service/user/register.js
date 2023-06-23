@@ -21,13 +21,17 @@ module.exports.registerUser= async (event, context) => {
 try {
     const data = await docClient.get(params).promise()
     if (JSON.stringify(data.Item) != null) {
-      sns.publish(snsparams, (err, data) => {
-        if (err) {}
-        else {
-          return "olee"
-        }
-      })
+       try {
+    snsparams.Message = "User already exists"
+    const data = await sns.publish(snsparams).promise();
+  } catch (e) {
+    console.log(e.stack)
+        return "AAAAAAAAAAAAAAAAa"
+
+  } finally {
       return {error: "User already exists!"}
+    
+  }
   
     }
     var userparams = {

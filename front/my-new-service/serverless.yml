@@ -25,6 +25,22 @@ provider:
   runtime: nodejs14.x
   stage: dev
   region: eu-central-1
+  environment:
+    TABLE_NAME:
+      Ref: users
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - "Fn::GetAtt": [users, Arn]
+
 
 # you can overwrite defaults here
  
@@ -52,16 +68,29 @@ provider:
 #    variable1: value1
 
 # you can add packaging information here
-#package:
-#  patterns:
-#    - '!exclude-me.js'
-#    - '!exclude-me-dir/**'
-#    - include-me.js
+package:
+ individually: True
+ patterns:
+   - '!**/**'
 #    - include-me-dir/**
 
 functions:
+  testlambda:
+    handler: user/test.test
+    package:
+      include: 'user/**'
+    url:
+      cors:
+        allowedOrigins:
+          - '*'
+        allowedHeaders:
+          - Authorization
+        allowedMethods:
+          - POST
+
+
   registerUser:
-      handler: user/user.registerUser
+      handler: user/register.registerUser
       package:
         include: 'user/**'
       url:
@@ -72,8 +101,37 @@ functions:
             - Authorization
           allowedMethods:
             - POST
-  hello:
-    handler: handler.hello
+      # events:
+      # - sns:
+      #     arn: !Ref SuperTopic
+      #     topicName: DatabaseTopic
+#   loginUser:
+#       handler: user/login.login
+#       package:
+#         include: 'user/**'
+#       url:
+#         cors:
+#           allowedOrigins:
+#             - '*'
+#           allowedHeaders:
+#             - Authorization
+#           allowedMethods:
+#             - POST
+
+  # uploadGallery:
+  #     handler: gallery/upload.upload
+  #     package:
+  #       include: 'gallery/**'
+  #     url:
+  #       cors:
+  #         allowedOrigins:
+  #           - '*'
+  #         allowedHeaders:
+  #           - Authorization
+  #         allowedMethods:
+  #           - POST
+  # hello:
+  #   handler: handler.hello
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
@@ -115,12 +173,33 @@ functions:
 #      variable2: value2
 
 # you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
+resources:
+  Resources:
+    users:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: serverlessUsers
+        AttributeDefinitions:
+          - AttributeName: username
+            AttributeType: S
+        KeySchema:
+          - AttributeName: username
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    SuperTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: DatabaseTopic
+
+    SNSSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: selena.milutin@gmail.com
+        Protocol: email
+        TopicArn: {"Ref": "SuperTopic"}
 #  Outputs:
 #     NewOutput:
 #       Description: "Description for the output"

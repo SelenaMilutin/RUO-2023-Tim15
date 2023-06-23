@@ -88,7 +88,7 @@ export interface Document {
    }
   ]
  },
- "name": {
+ "namee": {
   "S": "Nikola"
  },
  "lastname": {

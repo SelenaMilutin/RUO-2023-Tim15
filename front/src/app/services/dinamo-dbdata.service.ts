@@ -51,7 +51,7 @@ public create(user:AppUser): Observable<any[]> {
       "galleryName": "root",
       "document": [
        ],
-      "name": user.name,
+      "namee": user.name,
       "lastname": user.lastname,
       "birthday": user.birthday,
       "email": user.email,

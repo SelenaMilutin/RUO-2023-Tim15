@@ -42,6 +42,18 @@ provider:
       Resource:
         - "Fn::GetAtt": [users, Arn]
         - arn:aws:sns:eu-central-1:260436118818:DatabaseTopic
+        - "Fn::GetAtt": [galleryTable, Arn]
+    - Effect: Allow
+      Action:
+        - s3:ListBucket
+      Resource:
+        - arn:aws:s3:::milostim15.gallery
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource:
+        - arn:aws:s3:::milostim15.gallery/*
 
 
 # you can overwrite defaults here
@@ -121,18 +133,31 @@ functions:
 #           allowedMethods:
 #             - POST
 
-  # uploadGallery:
-  #     handler: gallery/upload.upload
-  #     package:
-  #       include: 'gallery/**'
-  #     url:
-  #       cors:
-  #         allowedOrigins:
-  #           - '*'
-  #         allowedHeaders:
-  #           - Authorization
-  #         allowedMethods:
-  #           - POST
+  uploadS3:
+      handler: gallery/uploadS3.upload
+      package:
+        include: 'gallery/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+
+  uploadDDB:
+      handler: gallery/uploadDDB.upload
+      package:
+        include: 'gallery/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
   # hello:
   #   handler: handler.hello
 #    The following are a few example events you can configure
@@ -200,9 +225,32 @@ resources:
     SNSSubscription:
       Type: AWS::SNS::Subscription
       Properties:
-        Endpoint: selena.milutin@gmail.com
+        Endpoint: petefi.katarinaspremic@gmail.com
         Protocol: email
         TopicArn: {"Ref": "SuperTopic"}
+
+    galleryTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: serverlessGallery
+        AttributeDefinitions:
+          - AttributeName: hasAccess
+            AttributeType: S
+          - AttributeName: albumName
+            AttributeType: S
+        KeySchema:
+          - AttributeName: hasAccess
+            KeyType: HASH
+          - AttributeName: albumName
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    galleryBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: milostim15.gallery
 #  Outputs:
 #     NewOutput:
 #       Description: "Description for the output"

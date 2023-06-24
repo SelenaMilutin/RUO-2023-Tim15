@@ -1,7 +1,10 @@
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 
-exports.handler = async (event, context) => {
+module.exports.upload = async (event, context) => {
+
+    console.log("recieved event", JSON.stringify(event, null, 2))
+    console.log("recieved context", JSON.stringify(context, null, 2))
 
     const s3Bucket = "milostim15.gallery";
     const objectName = event.fileName;

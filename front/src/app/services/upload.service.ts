@@ -17,7 +17,7 @@ export class UploadService {
     secretAccessKey: keys.secretKey });
   }
 
-  private apiUrl = 'https://vyx4erg203.execute-api.eu-central-1.amazonaws.com';
+  private apiUrl = 'https://kpl48b9aki.execute-api.eu-central-1.amazonaws.com';
   private stagePath = '/dev';
   private resourcePath = '/upload';
 

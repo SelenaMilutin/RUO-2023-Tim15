@@ -43,8 +43,14 @@ export class UploadComponent implements OnInit {
     }
     let owner = localStorage.getItem('user')
     if (owner == undefined) owner = "mico" // for testing
-    const fileContent = await this.readFileAsBase64(this.file);
-    console.log(this.file)
+
+    let fileContent = ''
+    try {
+      fileContent = await this.readFileAsBase64(this.file);
+    } catch {
+      this.uploadStatusMessage = "Error. File too large or invalid type."
+      return;
+    }
     let req : UploadRequest = {
       method: 'POST',
       headers: {

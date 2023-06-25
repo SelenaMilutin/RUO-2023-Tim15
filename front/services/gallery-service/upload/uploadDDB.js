@@ -10,6 +10,7 @@ module.exports.upload = async (event, context) => {
     if (event.hasOwnProperty('statusCode')) return event;
 
     var file = event['body'];
+    const now = new Date();
 
     var object = {
     TableName: 'serverlessGallery',
@@ -17,8 +18,8 @@ module.exports.upload = async (event, context) => {
       "fileName": file.fileName,
       "fileType": file.fileType,
       "fileSize": file.fileSize,
-      "dateCreated": file.dateCreated,
-      "dateModified": file.dateModified,
+      "dateCreated": now.toISOString(),
+      "dateModified": now.toISOString(),
       "description": file.description,
       "tags": file.tags,
       "owner": file.owner,

@@ -1,22 +1,23 @@
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 const s3Bucket = "milostim15.gallery";
+const createResponse = require('../utility/utils.js').createResponse;
 
 module.exports.upload = async (event, context) => {
     
     console.log("recieved event", JSON.stringify(event, null, 2))
     console.log("recieved context", JSON.stringify(context, null, 2))
     
-    const objectName = event.hasAccess + '-' + event.albumName + '-' + event.fileName;
+    const body = event.body
+    const objectName = body.hasAccess + '-' + body.albumName + '-' + body.fileName;
 
     try {
         const exists = await checkIfFileExists(s3Bucket, objectName);
-        console.error(exists);
-        if (exists) return { error: "File with same name already exist in album." }
+        if (exists) return createResponse(400, "File with same name already exist in album.")
     }
     catch(error) {
         console.error("Error:", error);
-        return { error: error }
+        return createResponse(400, 'Error')
     };
 
     const objectData = event.file;
@@ -32,8 +33,9 @@ module.exports.upload = async (event, context) => {
         event["s3Name"] = objectName;
         return event
         
-    } catch (err) {
-        return { error: err }
+    } catch (error) {
+        console.error("Error:", error);
+        return createResponse(400, "Error")
     } 
 };
 

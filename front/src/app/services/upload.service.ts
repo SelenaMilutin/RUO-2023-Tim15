@@ -1,108 +1,105 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as AWS from 'aws-sdk'
-import * as S3 from 'aws-sdk/clients/s3';
+import * as StepFunctions from "aws-sdk/clients/stepfunctions";
+import { Observable } from 'rxjs';
 import { keys } from 'src/environments/keys';
-import { DinamoDBdataService } from './dinamo-dbdata.service';
+import { UploadRequest } from '../models/models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UploadService {
 
-  constructor(private readonly dinamoBDservice: DinamoDBdataService) { }
+  constructor(private http: HttpClient) { 
+    AWS.config.update({ region: 'eu-central-1',
+    accessKeyId: keys.accessKey,
+    secretAccessKey: keys.secretKey });
+  }
 
+  private apiUrl = 'https://yb18vbk2u7.execute-api.eu-central-1.amazonaws.com';
+  private stagePath = '/dev';
+  private resourcePath = '/upload';
+
+  private url = this.apiUrl + this.stagePath + this.resourcePath;
   
-  uploadFile(file: any, albumName: string) : boolean {
-    AWS.config.update({region: 'eu-central-1',
-                      apiVersion: "2012-08-10",
-                      accessKeyId: keys.accessKey,
-                      secretAccessKey: keys.secretKey});
-                      
-    const bucket = new S3(
-          {
-              apiVersion: '2006-03-01',
-              accessKeyId: keys.accessKey,
-              secretAccessKey: keys.secretKey,
-              region: 'eu-central-1'
-          }
-      );
+  private response : any;
+  
+  async uploadFile(req: UploadRequest): Promise<any> {
 
-    const contentType = file.type;
-    const params = {
-        Bucket: 'milostim15.gallery',
-        Key: albumName + '-' + file.name,
-        Body: file,
-        ACL: 'public-read',
-        ContentType: contentType
-    };
-    const that = this;
-    
-    bucket.upload(params, function (err: any, data: any) {
-      if (err) {
-        console.log('Error S3', err);
-        return false;
-      }
-        console.log('Success S3', data);
-        that.saveToDynamoDB(file, albumName);
-        return true;
+    const promise = new Promise<any>((resolve) => {
+
+      this.getArn(req).subscribe(async (res) => {
+        // await this.waitForStepFunctionExecution(res.executionArn);
+  
+        this.waitForStepFunctionCompletion(res.executionArn)
+        .then(() => {
+          console.log('All steps in the Step Function have completed.');
+          resolve(this.response);
+        })
+        .catch((error: Error) => {
+          console.error('Failed to wait for Step Function completion.', error);
+          resolve(this.response);
+        });
+  
+      })
+
     });
-    return true;
+
+    return promise;
+    
+    
+  }
+  
+  getArn(req: UploadRequest): Observable<any> {
+    return this.http.post<UploadRequest>(this.url, req)
   }
 
-async saveToDynamoDB(file: any, albumName: string): Promise<void> {
-  // Load the AWS SDK for Node.js
-  // Set the region 
-  AWS.config.update({region: 'eu-central-1',
-                    apiVersion: "2012-08-10",
-                    accessKeyId: keys.accessKey,
-                    secretAccessKey: keys.secretKey});
-
-  // Create the DynamoDB service object
-  var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
-  console.log(file.size)
-  let owner = localStorage.getItem('user')
-  if (owner == undefined) owner = "mico"
-  var params = {
-    TableName: 'files_registry',
-    Item: {
-      "fileName": {
-       "S": file.name
-      },
-      "fileType": {
-       "S": file.type
-      },
-      "fileSize": {
-       "S": file.size.toString()
-      },
-      "dateCreated": {
-       "S": new Date().toISOString()
-      },
-      "dateModified": {
-       "S": new Date().toISOString()
-      },
-      "description": {
-       "S": ""
-      },
-      "tags": {
-       "L": []
-      },
-      "owner": {
-        "S": owner
-      },
-      "albumName": {
-        "S": albumName
-      }
-     }
-  };
-  const that = this
-  // // Call DynamoDB to add the item to the table
-  ddb.putItem(params, function(err: any, data: any) {
-    if (err) {
-      console.log("Error DDB", err);
-    } else {
-      console.log("Success DDB", data);
-    }
-  });
-
+  // async waitForStepFunctionExecution(executionArn: string): Promise<void> {
+  //   const stepFunctions = new StepFunctions();
+  //   const params: AWS.StepFunctions.GetExecutionHistoryInput = {
+  //     executionArn: executionArn,
+  //   };
+  //   try {
+  //     const { status, output } = await stepFunctions.waitFor('executionArn', params).promise();
+  //     console.log('Step Function execution succeeded');
+  //     console.log('Output:', output);
+  //     this.response = output;
+  //     return this.response;
+  //   } catch (error) {
+  //     console.error('Step Function execution failed:', error);
+  //   }
+  // }
+  
+  async waitForStepFunctionCompletion(executionArn: string): Promise<void> {
+    const stepFunctions = new StepFunctions();
+    const params: StepFunctions.DescribeExecutionInput = {
+      executionArn,
+    };
+  
+    return new Promise((resolve, reject) => {
+      const checkStatus = async () => {
+        try {
+          const response = await stepFunctions.describeExecution(params).promise();
+  
+          if (response.status === 'RUNNING') {
+            setTimeout(checkStatus, 2000); // Check again after 2 seconds
+          } else if (response.status === 'SUCCEEDED') {
+            const responseBody = response.output ? JSON.parse(response.output) : {};
+            console.log(responseBody);
+            if (responseBody.statusCode == 200) this.response = responseBody.body
+            else if (responseBody.statusCode == 400) this.response = responseBody.body
+            else this.response = "Error"
+            resolve();
+          } else {
+            reject(new Error('Error'));
+          }
+        } catch (error) {
+          reject(new Error('Error'));
+        }
+      };
+      checkStatus();
+    });
   }
+
 }

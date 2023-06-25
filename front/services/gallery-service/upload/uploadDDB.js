@@ -1,14 +1,15 @@
 const AWS = require("aws-sdk");
 const docClient = new AWS.DynamoDB.DocumentClient();
+const createResponse = require('../utility/utils.js').createResponse;
 
 module.exports.upload = async (event, context) => {
     console.log("recieved event", JSON.stringify(event, null, 2))
     console.log("recieved context", JSON.stringify(context, null, 2))
 
     // Previous step has failed
-    if (event.hasOwnProperty('error')) return { error: event.error }
+    if (event.hasOwnProperty('statusCode')) return event;
 
-    var file = event
+    var file = event;
 
     var object = {
     TableName: 'serverlessGallery',
@@ -30,9 +31,9 @@ module.exports.upload = async (event, context) => {
 
   try {
     await docClient.put(object).promise();
-    return { body: 'Successfully created item!' }
-  } catch (err) {
-    return { error: err }
+    return createResponse(200, 'Successfully created item!');
+  } catch (error) {
+    return createResponse(400, 'Error');
   }
 
 }

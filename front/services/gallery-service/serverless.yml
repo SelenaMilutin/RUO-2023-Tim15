@@ -46,6 +46,7 @@ package:
  individually: True
  patterns:
    - '!**/**'
+   - 'utility/**'
 
 functions:
 
@@ -66,7 +67,6 @@ functions:
       handler: upload/uploadDDB.upload
       package:
         include: 'upload/**'
-      
       url:
         cors:
           allowedOrigins:
@@ -109,6 +109,7 @@ stepFunctions:
           request:
             schema:
               $ref: ./models/uploadRequest.json
+          cors: true
       definition:
         StartAt: UploadS3
         States:

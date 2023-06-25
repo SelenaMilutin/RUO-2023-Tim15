@@ -17,7 +17,7 @@ export class UploadService {
     secretAccessKey: keys.secretKey });
   }
 
-  private apiUrl = 'https://yb18vbk2u7.execute-api.eu-central-1.amazonaws.com';
+  private apiUrl = 'https://vyx4erg203.execute-api.eu-central-1.amazonaws.com';
   private stagePath = '/dev';
   private resourcePath = '/upload';
 
@@ -30,15 +30,14 @@ export class UploadService {
     const promise = new Promise<any>((resolve) => {
 
       this.getArn(req).subscribe(async (res) => {
-        // await this.waitForStepFunctionExecution(res.executionArn);
   
         this.waitForStepFunctionCompletion(res.executionArn)
         .then(() => {
           console.log('All steps in the Step Function have completed.');
           resolve(this.response);
         })
-        .catch((error: Error) => {
-          console.error('Failed to wait for Step Function completion.', error);
+        .catch((_: Error) => {
+          console.log('Failed to wait for Step Function completion.');
           resolve(this.response);
         });
   
@@ -54,22 +53,6 @@ export class UploadService {
   getArn(req: UploadRequest): Observable<any> {
     return this.http.post<UploadRequest>(this.url, req)
   }
-
-  // async waitForStepFunctionExecution(executionArn: string): Promise<void> {
-  //   const stepFunctions = new StepFunctions();
-  //   const params: AWS.StepFunctions.GetExecutionHistoryInput = {
-  //     executionArn: executionArn,
-  //   };
-  //   try {
-  //     const { status, output } = await stepFunctions.waitFor('executionArn', params).promise();
-  //     console.log('Step Function execution succeeded');
-  //     console.log('Output:', output);
-  //     this.response = output;
-  //     return this.response;
-  //   } catch (error) {
-  //     console.error('Step Function execution failed:', error);
-  //   }
-  // }
   
   async waitForStepFunctionCompletion(executionArn: string): Promise<void> {
     const stepFunctions = new StepFunctions();

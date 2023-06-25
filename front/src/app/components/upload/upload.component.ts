@@ -43,6 +43,8 @@ export class UploadComponent implements OnInit {
     }
     let owner = localStorage.getItem('user')
     if (owner == undefined) owner = "mico" // for testing
+    const fileContent = await this.readFileAsBase64(this.file);
+    console.log(this.file)
     let req : UploadRequest = {
       method: 'POST',
       headers: {
@@ -58,9 +60,10 @@ export class UploadComponent implements OnInit {
         owner: owner,
         hasAccess: owner,
         albumName: this.currentAlbumName,
-        file: this.file
+        file: fileContent
       }
     }
+    console.log(req)
     let res = await this.uploadService.uploadFile(req);
     this.uploadStatusMessage = res.substring(1, res.length - 1);
   }
@@ -74,6 +77,9 @@ export class UploadComponent implements OnInit {
         this.fileName = file.name;
         this.file = file;
         this.transformFileName();
+        this.uploadStatusMessage = ""
+        this.fileDescription = ""
+        this.tags = []
       }
     }
   }
@@ -104,5 +110,35 @@ export class UploadComponent implements OnInit {
     return true;
   }
 
+  async readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const arrayBuffer = reader.result as ArrayBuffer;
+        console.log(arrayBuffer);
+        resolve(arrayBuffer);
+      };
+      reader.onerror = (error) => {
+        reject(error);
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  readFileAsBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result?.toString().split(',')[1];
+        if (base64String) {
+          resolve(base64String);
+        } else {
+          reject(new Error('Failed to read file as base64'));
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
 
 }

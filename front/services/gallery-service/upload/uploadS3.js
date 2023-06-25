@@ -8,34 +8,32 @@ module.exports.upload = async (event, context) => {
     console.log("recieved event", JSON.stringify(event, null, 2))
     console.log("recieved context", JSON.stringify(context, null, 2))
     
-    const body = event.body
-    const objectName = body.hasAccess + '-' + body.albumName + '-' + body.fileName;
+    const body = event.body;
+    const objectName = body.hasAccess + '/' + body.albumName + '/' + body.fileName;
 
     try {
         const exists = await checkIfFileExists(s3Bucket, objectName);
-        if (exists) return createResponse(400, "File with same name already exist in album.")
+        if (exists) return createResponse(400, "File with same name already exist in album.");
     }
     catch(error) {
         console.error("Error:", error);
-        return createResponse(400, 'Error')
+        return createResponse(400, 'Error');
     };
 
-    const objectData = event.file;
-    const objectType = "application/json";
+    const objectData = Buffer.from(body['file'], 'base64');
     try {
         const params = {
             Bucket: s3Bucket,
             Key: objectName,
             Body: objectData,
-            ContentType: objectType
         };
         await s3.putObject(params).promise(); 
-        event["s3Name"] = objectName;
-        return event
+        event['body']["s3Name"] = objectName;
+        return event;
         
     } catch (error) {
         console.error("Error:", error);
-        return createResponse(400, "Error")
+        return createResponse(400, "Error");
     } 
 };
 

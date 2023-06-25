@@ -9,7 +9,7 @@ module.exports.upload = async (event, context) => {
     // Previous step has failed
     if (event.hasOwnProperty('statusCode')) return event;
 
-    var file = event;
+    var file = event['body'];
 
     var object = {
     TableName: 'serverlessGallery',

@@ -84,15 +84,11 @@ resources:
       Properties:
         TableName: serverlessGallery
         AttributeDefinitions:
-          - AttributeName: hasAccess
-            AttributeType: S
-          - AttributeName: albumName
+          - AttributeName: s3Name
             AttributeType: S
         KeySchema:
-          - AttributeName: hasAccess
+          - AttributeName: s3Name
             KeyType: HASH
-          - AttributeName: albumName
-            KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1

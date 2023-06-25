@@ -5,6 +5,9 @@ module.exports.upload = async (event, context) => {
     console.log("recieved event", JSON.stringify(event, null, 2))
     console.log("recieved context", JSON.stringify(context, null, 2))
 
+    // Previous step has failed
+    if (event.hasOwnProperty('error')) return { error: event.error }
+
     var file = event
 
     var object = {

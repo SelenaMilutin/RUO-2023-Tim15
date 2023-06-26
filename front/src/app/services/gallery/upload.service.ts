@@ -4,7 +4,7 @@ import * as AWS from 'aws-sdk'
 import * as StepFunctions from "aws-sdk/clients/stepfunctions";
 import { Observable } from 'rxjs';
 import { keys } from 'src/environments/keys';
-import { UploadRequest } from '../models/models';
+import { UploadRequest } from '../../models/models';
 
 @Injectable({
   providedIn: 'root'

@@ -1,9 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { UploadService } from 'src/app/services/upload.service';
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { FormControl } from '@angular/forms';
 import { UploadRequest } from 'src/app/models/models';
+import { UploadService } from 'src/app/services/gallery/upload.service';
 
 @Component({
   selector: 'app-upload',
@@ -24,9 +24,6 @@ export class UploadComponent implements OnInit {
   tagCtrl = new FormControl('');
   separatorKeysCodes: number[] = [ENTER, COMMA];
   tags: string[] = []
-
-  uploadSuccess : boolean = false;
-  uploadTried :  boolean = false;
 
   uploadStatusMessage : string = '';
 
@@ -114,21 +111,6 @@ export class UploadComponent implements OnInit {
   validateFileName(): boolean {
     if (this.fileName === "" || this.fileName?.includes('/') || this.fileName?.includes('-')) return false;
     return true;
-  }
-
-  async readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const arrayBuffer = reader.result as ArrayBuffer;
-        console.log(arrayBuffer);
-        resolve(arrayBuffer);
-      };
-      reader.onerror = (error) => {
-        reject(error);
-      };
-      reader.readAsArrayBuffer(file);
-    });
   }
 
   readFileAsBase64(file: File): Promise<string> {

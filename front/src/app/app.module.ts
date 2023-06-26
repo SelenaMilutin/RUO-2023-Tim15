@@ -12,7 +12,8 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UploadComponent } from './components/upload/upload.component'
-import { UploadService } from './services/upload.service';
+import { GalleryViewComponent } from './components/gallery-view/gallery-view.component';
+import { UploadService } from './services/gallery/upload.service';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { UploadService } from './services/upload.service';
     LoginComponent,
     RegisterComponent,
     ToolbarComponent,
-    UploadComponent
+    UploadComponent,
+    GalleryViewComponent
   ],
   imports: [
     BrowserModule,

@@ -35,7 +35,11 @@ export class ViewService {
     return new Promise((resolve, reject) => {
       this.http.get(this.apiUrl, {params: this.params}).subscribe(
         (response: any) => {
-          resolve(response.body);
+          console.log(response)
+          if (response.statusCode != 200) resolve([])
+          const parsedResponse: GalleryFile[] = JSON.parse(response.body);
+          console.log(parsedResponse)
+          resolve(parsedResponse);
         },
         (error) => {
           reject(error);

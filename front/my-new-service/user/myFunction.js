@@ -1,22 +1,25 @@
-const AWS = require("aws-sdk")
-const docClient = new AWS.DynamoDB.DocumentClient()
+const AWS = require("aws-sdk");
+const ddb = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
+const docClient = new AWS.DynamoDB.DocumentClient();
 
-module.exports.handler = async (event) => {
+module.exports.handler = async(event, context) => {
+  var user = event;
+  console.log(user)
 
-  const body = JSON.parse(event.body)
-
-  const params = {
-    TableName: 'serverlessUsers',
-    FilterExpression: 'username = :username and password = :password',
-    ExpressionAttributeValues: {
-      ':username': body.username,
-      ':password': body.password
-    },
-    ProjectionExpression: "username, namee, lastname, email"
-  };
+  var params = {
+      TableName: 'serverlessUsers',
+      Item: {
+        "username": "bbb",
+        "namee": "aaa",
+        "lastname": "aaa",
+        "birthday": "aaa",
+        "email": "aaa",
+        "password":"aaa"
+        }
+    };
 
   try {
-    const data = await docClient.scan(params).promise()
+    await docClient.put(params).promise();
     return {
       statusCode: 200,
       headers: {
@@ -24,7 +27,7 @@ module.exports.handler = async (event) => {
         "Access-Control-Allow-Origin": "http://localhost:4200",
         "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
       },
-      body: JSON.stringify({ body: data.Items }) 
+      body: JSON.stringify({ response: "Successful"})
     }
   } catch (err) {
     return {
@@ -38,4 +41,4 @@ module.exports.handler = async (event) => {
     }
   }
 
-}
+};

@@ -102,6 +102,35 @@ functions:
         allowedMethods:
           - POST
 
+  authorizerFunction:
+    handler: user/authorizer.handler
+    package:
+      include: 'user/**'
+
+  login:
+    handler: user/login.handler
+    package:
+      include: 'user/**'
+    events:
+      - http:
+          path: login
+          method: post
+          cors: true
+
+  myFunction:
+    handler: user/myFunction.handler
+    package:
+      include: 'user/**'
+    events:
+      - http:
+          path: my-endpoint
+          method: get
+          cors: true
+          authorizer:
+            name: authorizerFunction
+            resultTtlInSeconds: 30
+            identitySource: method.request.header.Authorization
+            type: token
 
   registerUser:
       handler: user/register.registerUser
@@ -203,6 +232,16 @@ functions:
 # you can add CloudFormation resource templates here
 resources:
   Resources:
+    Unauthorized:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'*'"
+          "gatewayresponse.header.Access-Control-Allow-Headers": "'*'"
+        ResponseType: "DEFAULT_4XX"
+        RestApiId:
+          Ref: "ApiGatewayRestApi"
+
     users:
       Type: AWS::DynamoDB::Table
       Properties:

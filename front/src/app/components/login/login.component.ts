@@ -1,7 +1,9 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import * as AWS from 'aws-sdk';
+import { Observable } from 'rxjs';
 import { keys } from 'src/environments/keys';
 import { json } from 'stream/consumers';
 
@@ -12,7 +14,7 @@ import { json } from 'stream/consumers';
 })
 export class LoginComponent implements OnInit {
 
-  constructor(private readonly router:Router) { }
+  constructor(private readonly router:Router, private http: HttpClient) { }
 
   loginForm = new FormGroup({
     username: new FormControl('', Validators.required),
@@ -20,6 +22,40 @@ export class LoginComponent implements OnInit {
   })
 
   ngOnInit(): void {
+  }
+
+  login2(): void {
+    const headers = new HttpHeaders().set('Authorization', "neko");
+    console.log(this.loginForm.value.username)
+
+    const params = {
+      username: this.loginForm.value.username,
+      password: this.loginForm.value.password
+    }
+
+    this.http.post('https://6t8binv3ld.execute-api.eu-central-1.amazonaws.com/dev/login', params).subscribe((response: any) => {
+      
+      let items: any = response!.body
+
+      if (items.length == 0) {
+        alert("Nema korisnika sa tim kredencijalima")
+        return
+      }
+
+      if (items.length > 1) {
+        alert("Ima vise od jednog korisnika sa tim kredencijalima")
+        return
+      }
+
+      let user: any = items[0]
+      localStorage.setItem("user", JSON.stringify(user))
+      console.log(JSON.parse(localStorage.getItem("user")!))
+
+    });
+
+    // this.http.get('https://7wr536bm03.execute-api.eu-central-1.amazonaws.com/dev/funkcija').subscribe(response => {
+    //   console.log("izvrseno")
+    // });
   }
 
   login(): void {

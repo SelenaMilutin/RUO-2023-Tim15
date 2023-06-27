@@ -1,23 +1,5 @@
-# Welcome to Serverless!
-#
-# This file is the main config file for your service.
-# It's very minimal at this point and uses default values.
-# You can always add more config options for more control.
-# We've included some commented out config examples here.
-# Just uncomment any of them to get that config option.
-#
-# For full config options, check the docs:
-#    docs.serverless.com
-#
-# Happy Coding!
 
 service: my-new-service
-# app and org for use with dashboard.serverless.com
-#app: your-app-name
-#org: your-org-name
-
-# You can pin your service to only deploy with a specific Serverless version
-# Check out our docs for more details
 frameworkVersion: "3"
 
 provider:
@@ -54,39 +36,24 @@ provider:
         - s3:PutObject
       Resource:
         - arn:aws:s3:::milostim15.gallery/*
+    - Effect: Allow
+      Action:
+        - states:StartExecution
+        - states:StopExecution
+        - states:DescribeExecution
+        - states:ListExecutions
+        - states:ListStateMachines
+        - states:DescribeStateMachine
+        - states:GetExecutionHistory
+      Resource:
+        - "arn:aws:states:*:*:stateMachine:*"
+        - "arn:aws:states:*:*:execution:*"
 
-
-# you can overwrite defaults here
- 
-
-# you can add statements to the Lambda function's IAM Role here
-#  iam:
-#    role:
-#      statements:
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:ListBucket"
-#          Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:PutObject"
-#          Resource:
-#            Fn::Join:
-#              - ""
-#              - - "arn:aws:s3:::"
-#                - "Ref" : "ServerlessDeploymentBucket"
-#                - "/*"
-
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# you can add packaging information here
 package:
  individually: True
  patterns:
    - '!**/**'
-#    - include-me-dir/**
+   - 'utility/**'
 
 functions:
   testlambda:
@@ -102,6 +69,44 @@ functions:
         allowedMethods:
           - POST
 
+  authorizerFunction:
+    handler: user/authorizer.handler
+    package:
+      include: 'user/**'
+
+  login:
+    handler: user/login.handler
+    package:
+      include: 'user/**'
+    events:
+      - http:
+          path: login
+          method: post
+          cors: true
+
+  download:
+    handler: user/download.handler
+    package:
+      include: 'user/**'
+    events:
+      - http:
+          path: download
+          method: post
+          cors: true
+
+  myFunction:
+    handler: user/myFunction.handler
+    package:
+      include: 'user/**'
+    events:
+      - http:
+          path: my-endpoint
+          method: post
+          cors: true
+          authorizer:
+            name: authorizerFunction
+            identitySource: method.request.header.Authorization
+            type: token
 
   registerUser:
       handler: user/register.registerUser
@@ -115,28 +120,11 @@ functions:
             - Authorization
           allowedMethods:
             - POST
-      
-      # events:
-      # - sns:
-      #     arn: !Ref SuperTopic
-      #     topicName: DatabaseTopic
-#   loginUser:
-#       handler: user/login.login
-#       package:
-#         include: 'user/**'
-#       url:
-#         cors:
-#           allowedOrigins:
-#             - '*'
-#           allowedHeaders:
-#             - Authorization
-#           allowedMethods:
-#             - POST
 
   uploadS3:
-      handler: gallery/uploadS3.upload
+      handler: upload/uploadS3.upload
       package:
-        include: 'gallery/**'
+        include: 'upload/**'
       url:
         cors:
           allowedOrigins:
@@ -147,9 +135,9 @@ functions:
             - POST
 
   uploadDDB:
-      handler: gallery/uploadDDB.upload
+      handler: upload/uploadDDB.upload
       package:
-        include: 'gallery/**'
+        include: 'upload/**'
       url:
         cors:
           allowedOrigins:
@@ -158,51 +146,24 @@ functions:
             - Authorization
           allowedMethods:
             - POST
-  # hello:
-  #   handler: handler.hello
-#    The following are a few example events you can configure
-#    NOTE: Please make sure to change your handler code to work with those events
-#    Check the event documentation for details
-#    events:
-#      - httpApi:
-#          path: /users/create
-#          method: get
-#      - websocket: $connect
-#      - s3: ${env:BUCKET}
-#      - schedule: rate(10 minutes)
-#      - sns: greeter-topic
-#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-#      - alexaSkill: amzn1.ask.skill.xx-xx-xx-xx
-#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
-#      - iot:
-#          sql: "SELECT * FROM 'some_topic'"
-#      - cloudwatchEvent:
-#          event:
-#            source:
-#              - "aws.ec2"
-#            detail-type:
-#              - "EC2 Instance State-change Notification"
-#            detail:
-#              state:
-#                - pending
-#      - cloudwatchLog: '/aws/lambda/hello'
-#      - cognitoUserPool:
-#          pool: MyUserPool
-#          trigger: PreSignUp
-#      - alb:
-#          listenerArn: arn:aws:elasticloadbalancing:us-east-1:XXXXXX:listener/app/my-load-balancer/50dc6c495c0c9188/
-#          priority: 1
-#          conditions:
-#            host: example.com
-#            path: /hello
+      
+      # events:
+      # - sns:
+      #     arn: !Ref SuperTopic
+      #     topicName: DatabaseTopic
 
-#    Define function environment variables here
-#    environment:
-#      variable2: value2
-
-# you can add CloudFormation resource templates here
 resources:
   Resources:
+    Unauthorized:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          "gatewayresponse.header.Access-Control-Allow-Origin": "'*'"
+          "gatewayresponse.header.Access-Control-Allow-Headers": "'*'"
+        ResponseType: "DEFAULT_4XX"
+        RestApiId:
+          Ref: "ApiGatewayRestApi"
+
     users:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -234,15 +195,11 @@ resources:
       Properties:
         TableName: serverlessGallery
         AttributeDefinitions:
-          - AttributeName: hasAccess
-            AttributeType: S
-          - AttributeName: albumName
+          - AttributeName: s3Name
             AttributeType: S
         KeySchema:
-          - AttributeName: hasAccess
+          - AttributeName: s3Name
             KeyType: HASH
-          - AttributeName: albumName
-            KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
@@ -251,7 +208,35 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: milostim15.gallery
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+
+stepFunctions:
+  stateMachines:
+    uploadStepFunction:
+      name: 'uploadStepFunction'
+      events:
+      - http:
+          path: /upload
+          method: POST
+          request:
+            schema:
+              $ref: ./models/uploadRequest.json
+          cors: true
+      definition:
+        StartAt: UploadS3
+        States:
+          # State key
+          UploadS3:
+            Type: Task
+            Resource: "arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${self:provider.stage}-uploadS3"
+            ResultPath: $.uploadS3Result
+            Next: UploadDDB
+          UploadDDB:
+            Type: Task
+            Resource: "arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${self:provider.stage}-uploadDDB"
+            InputPath: $.uploadS3Result
+            # Is end state
+            End: true
+
+plugins:
+  - serverless-step-functions
+

@@ -40,7 +40,7 @@ export class UploadComponent implements OnInit {
     }
     let owner = localStorage.getItem('username')
     if (owner == undefined) owner = "mico" // for testing
-    this.currentAlbumName = owner + '/root' // for testing
+    this.currentAlbumName = owner + '/root' // for testing  TODO
 
     let fileContent = ''
     try {

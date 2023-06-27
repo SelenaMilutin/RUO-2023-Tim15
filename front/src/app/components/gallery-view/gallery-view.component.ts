@@ -10,7 +10,7 @@ import { ViewService } from 'src/app/services/gallery/view.service';
 export class GalleryViewComponent implements OnInit {
 
   files: GalleryFile[] = []
-  albumName: string = 'mico/root'
+  albumName: string = 'mico/root'  //TODO
   statusMessage: string = ''
 
   constructor(private readonly viewService: ViewService) { }

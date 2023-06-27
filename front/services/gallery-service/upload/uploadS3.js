@@ -14,7 +14,7 @@ module.exports.upload = async (event, context) => {
     } else return createResponse(400, "Invalid request");
 
     const body = event.body;
-    const objectName = body.hasAccess + '/' + body.albumName + '/' + body.fileName;
+    const objectName = body.albumName + '/' + body.fileName;
 
     try {
         const exists = await checkIfFileExists(s3Bucket, objectName);

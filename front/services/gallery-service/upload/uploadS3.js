@@ -1,6 +1,6 @@
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
-const s3Bucket = "milostim15.gallery";
+const s3Bucket = "gst.milostim15.gallery";
 const createResponse = require('../utility/utils.js').createResponse;
 
 module.exports.upload = async (event, context) => {

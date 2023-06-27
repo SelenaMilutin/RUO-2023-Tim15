@@ -13,7 +13,7 @@ module.exports.upload = async (event, context) => {
     const now = new Date();
 
     var object = {
-    TableName: 'serverlessGallery',
+    TableName: 'gst-serverlessGallery',
     Item: {
       "fileName": file.fileName,
       "fileType": file.fileType,
@@ -34,6 +34,7 @@ module.exports.upload = async (event, context) => {
     await docClient.put(object).promise();
     return createResponse(200, 'Successfully created item!');
   } catch (error) {
+    console.log(error)
     return createResponse(400, 'Error');
   }
 

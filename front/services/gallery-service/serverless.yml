@@ -22,13 +22,13 @@ provider:
       Action:
         - s3:ListBucket
       Resource:
-        - arn:aws:s3:::milostim15.gallery
+        - arn:aws:s3:::gst.milostim15.gallery
     - Effect: Allow
       Action:
         - s3:GetObject
         - s3:PutObject
       Resource:
-        - arn:aws:s3:::milostim15.gallery/*
+        - arn:aws:s3:::gst.milostim15.gallery/*
     - Effect: Allow
       Action:
         - states:StartExecution
@@ -75,6 +75,19 @@ functions:
             - Authorization
           allowedMethods:
             - POST
+
+  getFromAlbum:
+      handler: view/getFromAlbum.get
+      package:
+        include: 'view/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - GET
   
 resources:
   Resources:
@@ -82,7 +95,7 @@ resources:
     galleryTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: serverlessGallery
+        TableName: gst-serverlessGallery
         AttributeDefinitions:
           - AttributeName: s3Name
             AttributeType: S
@@ -96,7 +109,7 @@ resources:
     galleryBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: milostim15.gallery
+        BucketName: gst.milostim15.gallery
 
 stepFunctions:
   stateMachines:

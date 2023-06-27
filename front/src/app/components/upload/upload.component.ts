@@ -28,7 +28,7 @@ export class UploadComponent implements OnInit {
   uploadStatusMessage : string = '';
 
   @Input()
-  currentAlbumName : string = localStorage.getItem('user') + '/' + 'root';
+  currentAlbumName : string = '';
 
   constructor(private readonly uploadService: UploadService) {}
 
@@ -38,8 +38,9 @@ export class UploadComponent implements OnInit {
       this.uploadStatusMessage = 'Invalid file name. Cannot be blank. Characters "/" and "-" are not permitted and are replaced with "_".'
       this.transformFileName()
     }
-    let owner = localStorage.getItem('user')
+    let owner = localStorage.getItem('username')
     if (owner == undefined) owner = "mico" // for testing
+    this.currentAlbumName = owner + '/root' // for testing
 
     let fileContent = ''
     try {

@@ -22,6 +22,12 @@ export class GalleryViewComponent implements OnInit {
   async loadFiles() {
     try {
       this.files = await this.viewService.loadFiles(this.albumName);
+      this.files.sort((a, b) => {
+        const dateA = new Date(a.dateCreated);
+        const dateB = new Date(b.dateCreated);
+        return dateB.getTime() - dateA.getTime();
+      })
+      console.log(this.files)
     } catch (error) {
       console.error('Error loading items: ', error)
       this.statusMessage = 'Error loading files.'

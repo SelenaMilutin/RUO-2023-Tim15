@@ -18,10 +18,11 @@ export class UploadService {
     secretAccessKey: keys.secretKey });
   }
 
-  private apiUrl = 'https://vqp4k2kqs3.execute-api.eu-central-1.amazonaws.com/dev/upload';
+  private apiUrl = 'https://kjxmclf8ll.execute-api.eu-central-1.amazonaws.com';
+  private stagePath = '/dev';
+  private resourcePath = '/upload';
+  private url = this.apiUrl + this.stagePath + this.resourcePath;
 
-  private url = this.apiUrl;
-  
   private response : any;
   
   async uploadFile(req: UploadRequest): Promise<any> {

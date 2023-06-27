@@ -13,6 +13,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UploadComponent } from './components/upload/upload.component'
 import { UploadService } from './services/upload.service';
+import { InviteFamilyComponent } from './components/invite-family/invite-family.component';
+import { RegisterByInvitationComponent } from './components/register-by-invitation/register-by-invitation.component';
+import { VerifyRegistrationComponent } from './components/verify-registration/verify-registration.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +23,10 @@ import { UploadService } from './services/upload.service';
     LoginComponent,
     RegisterComponent,
     ToolbarComponent,
-    UploadComponent
+    UploadComponent,
+    InviteFamilyComponent,
+    RegisterByInvitationComponent,
+    VerifyRegistrationComponent
   ],
   imports: [
     BrowserModule,

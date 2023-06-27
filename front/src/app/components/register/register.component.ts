@@ -59,6 +59,8 @@ export class RegisterComponent implements OnInit {
     .subscribe(
       respoce => {
         console.log(respoce)
+        alert(respoce)
+        this.router.navigate(['/']);
       }
       )
    

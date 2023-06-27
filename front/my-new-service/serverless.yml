@@ -39,9 +39,12 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
         - sns:Publish
+        - ses:SendEmail
+        - ses:SendRawEmail
       Resource:
         - "Fn::GetAtt": [users, Arn]
         - arn:aws:sns:eu-central-1:260436118818:DatabaseTopic
+        - arn:aws:ses:*
 
 
 # you can overwrite defaults here
@@ -68,6 +71,11 @@ provider:
 # you can define service wide environment variables here
 #  environment:
 #    variable1: value1
+  	
+	
+plugins:
+  - serverless-step-functions
+
 
 # you can add packaging information here
 package:
@@ -90,7 +98,6 @@ functions:
         allowedMethods:
           - POST
 
-
   registerUser:
       handler: user/register.registerUser
       package:
@@ -108,6 +115,57 @@ functions:
       # - sns:
       #     arn: !Ref SuperTopic
       #     topicName: DatabaseTopic
+  sendInvitation:
+    handler: familyInvitation/sendInvitation.sendInvitation
+    package:
+      include: 'familyInvitation/**'
+    url:
+      cors:
+        allowedOrigins:
+          - '*'
+        allowedHeaders:
+          - Authorization
+        allowedMethods:
+          - PUT
+
+  userFillsData:
+    handler: familyInvitation/userFillsData.userFillsData
+    package:
+      include: 'familyInvitation/**'
+    url:
+      cors:
+        allowedOrigins:
+          - '*'
+        allowedHeaders:
+          - Authorization
+        allowedMethods:
+          - PUT
+  
+  createUser:
+    handler: familyInvitation/createUser.createUser
+    package:
+      include: 'familyInvitation/**'
+    url:
+      cors:
+        allowedOrigins:
+          - '*'
+        allowedHeaders:
+          - Authorization
+        allowedMethods:
+          - PUT
+  
+  deleteUser:
+    handler: familyInvitation/deleteUser.delete
+    package:
+      include: 'familyInvitation/**'
+    url:
+      cors:
+        allowedOrigins:
+          - '*'
+        allowedHeaders:
+          - Authorization
+        allowedMethods:
+          - PUT
 #   loginUser:
 #       handler: user/login.login
 #       package:
@@ -187,6 +245,20 @@ resources:
             AttributeType: S
         KeySchema:
           - AttributeName: username
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    usersByInvitation:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: serverlessUsersByInvitation
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1

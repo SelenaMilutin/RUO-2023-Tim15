@@ -74,7 +74,7 @@ function validateRequest(obj) {
 
     try {
         const size = parseInt(obj['fileSize']);
-        if (size > 524,288,000) return createResponse(400, "Files larger than 500MB aren't accepted.");
+        if (size > 240000) return createResponse(400, "Files larger than 240MB aren't accepted.");
       } catch (error) {
         return createResponse(400, "Invalid request");
     }

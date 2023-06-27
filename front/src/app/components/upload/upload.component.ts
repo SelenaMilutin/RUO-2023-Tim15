@@ -77,6 +77,10 @@ export class UploadComponent implements OnInit {
       const file = this.selectedFiles.item(0); 
       if (file != undefined)
       {
+        if (file.size > 240000) {
+          this.uploadStatusMessage = "Files can't be larger than 240KB."
+          return
+        }
         this.fileName = file.name;
         this.file = file;
         this.transformFileName();

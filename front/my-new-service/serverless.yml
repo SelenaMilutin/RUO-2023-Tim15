@@ -117,6 +117,16 @@ functions:
           method: post
           cors: true
 
+  download:
+    handler: user/download.handler
+    package:
+      include: 'user/**'
+    events:
+      - http:
+          path: download
+          method: post
+          cors: true
+
   myFunction:
     handler: user/myFunction.handler
     package:
@@ -124,11 +134,10 @@ functions:
     events:
       - http:
           path: my-endpoint
-          method: get
+          method: post
           cors: true
           authorizer:
             name: authorizerFunction
-            resultTtlInSeconds: 30
             identitySource: method.request.header.Authorization
             type: token
 

@@ -1,30 +1,46 @@
-const AWS = require('aws-sdk');
-
-// Kreiranje instance klijenta za pristup DynamoDB-u
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
+const AWS = require('aws-sdk')
+const docClient = new AWS.DynamoDB.DocumentClient()
 
 exports.handler = async (event) => {
-  const clientToken = event.authorizationToken || event.headers.Authorization; // Do something with an incoming auth token
-  console.log(clientToken)
 
-  const active = true; // Do something to check if user is active or similar
+  const active = event.body != undefined
 
-  const policy = active ? 'Allow' : 'Deny';
-  console.log(`Is user active? ${active}`);
+  const policy = active ? 'Allow' : 'Deny'
+  console.log(`Is user active? ${active}`)
 
-  const response = JSON.stringify({
-    something: "It's something"
-  });
-
-  return generatePolicy('user', policy, event.methodArn, response);
+  return generatePolicy('user', policy, event.methodArn);
 };
 
-async function validateToken(user) {
-  return false;
+async function validateToken(token) {
+  
+  const user = JSON.parse(token)
+  
+  const params = {
+    TableName: 'serverlessUsers',
+    FilterExpression: 'username = :username',
+    ExpressionAttributeValues: {
+      ':username': user.username
+    },
+    ProjectionExpression: "username, namee, lastname, email"
+  };
+  
+  try {
+    const data = await docClient.scan(params).promise()
+    console.log(data)
+    
+    if (data.Items.length == 1)
+      return true
+    else
+      return false
+      
+  } catch (err) {
+    return false
+  }
+  
 }
 
-const generatePolicy = (principalId, effect, resource, data) => {
-  // @see https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-output.html
+const generatePolicy = (principalId, effect, resource) => {
+  
   const authResponse = {
     principalId
   };
@@ -44,11 +60,6 @@ const generatePolicy = (principalId, effect, resource, data) => {
     policyDocument.Statement[0] = statement;
     authResponse.policyDocument = policyDocument;
   }
-
-  authResponse.context = {
-    stringKey: JSON.stringify(data)
-    //role: user.role --> "principalId" could be an object that also has role
-  };
 
   console.log('authResponse', authResponse);
 

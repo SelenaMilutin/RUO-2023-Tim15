@@ -7,6 +7,7 @@ import { DeleteService } from 'src/app/services/gallery/delete.service';
 import { ViewService } from 'src/app/services/gallery/view.service';
 import { keys } from 'src/environments/keys';
 import { of } from 'rxjs';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-gallery-view',
@@ -44,7 +45,15 @@ export class GalleryViewComponent implements OnInit {
 
   async loadFiles() {
     try {
-      this.files = await this.viewService.loadFiles(this.albumName);
+      const params = {
+        sub: this.albumName,
+        type: "FILE"
+      }
+  
+      let files: any = await this.http.post(keys.apiGateway + 'getAlbumsOrFiles', params).toPromise()
+
+      this.files = files
+      console.log(this.files)
       this.files.sort((a, b) => {
         const dateA = new Date(a.dateCreated);
         const dateB = new Date(b.dateCreated);
@@ -58,24 +67,7 @@ export class GalleryViewComponent implements OnInit {
   }
 
   async loadSubAlbums() {
-    // this.buttons = []
-    // try {
-    //   let res = await this.albumsService.getSubAlbums(this.albumName);
-    //   console.log(res)
-    //   if (res.length === 0)  {
-    //     this.subAlbums = []; 
-    //     return;
-    //   }
-    //   else this.subAlbums = res.subAlbums
-    //   for (let album of this.subAlbums) {
-    //     this.buttons.push({label: album, s3Link: album})
-    //   }
-    // } catch (error) {
-    //   console.error('Error loading sub albums: ', error)
-    //   this.statusMessage = 'Error loading sub albums.'
-    // } 
 
-    // console.log(this.albumName)
     const params = {
       sub: this.albumName,
       type: "ALBUM"
@@ -143,7 +135,18 @@ export class GalleryViewComponent implements OnInit {
   }
 
   clickDownload(file: GalleryFile) {
+    const params = {
+      fileName: file.s3Name
+    }
 
+    this.http.post(keys.apiGateway + 'download', params).subscribe((response: any) => {
+      console.log(response)
+      
+      let bytes = new Uint8Array(response!.body.data)
+      const blob = new Blob([bytes], { type: 'application/octet-stream' });
+      saveAs(blob, "file." + params.fileName.split("\.")[1]);
+
+    });
   }
 
   edit(file: GalleryFile) {

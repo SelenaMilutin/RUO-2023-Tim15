@@ -138,6 +138,14 @@ export class GalleryViewComponent implements OnInit {
       await this.clickDelete(file)
     });
 
+    albums.forEach(async (album: any) => {
+      const params = {
+        s3Link: album.s3Link
+      }
+      await this.http.post(keys.apiGateway + 'deleteAlbum', params).toPromise()
+      console.log("deleted album")
+    })
+
   }
 
   async clickAddAlbum() {

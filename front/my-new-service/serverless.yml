@@ -332,6 +332,24 @@ functions:
           method: post
           cors: true
 
+  deleteAlbum:
+      handler: delete/deleteAlbum.delete
+      package:
+        include: 'delete/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: deleteAlbum
+          method: post
+          cors: true
+
 resources:
   Resources:
 

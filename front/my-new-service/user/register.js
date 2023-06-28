@@ -13,6 +13,17 @@ module.exports.registerUser= async (event, context) => {
         TopicArn: 'arn:aws:sns:eu-central-1:260436118818:DatabaseTopic'
       };
     var user = JSON.parse(event.body)
+    if (!isCorrectData(user)) {
+      return {
+  statusCode: 404,
+  headers: {
+            "Access-Control-Allow-Headers" : "Content-Type",
+            "Access-Control-Allow-Origin": "http://localhost:4200",
+            "Access-Control-Allow-Methods": "OPTIONS,POST,GET, PUT"
+        },
+  body: JSON.stringify("Data is not correct")
+}
+    }
     
     const params = {
   TableName : 'serverlessUsers',
@@ -49,7 +60,9 @@ try {
         Item: {
           "s3Link": user.username + "/root",
           "albumName": "root",
-          "subAlbums": []
+          "subAlbums": [],
+          "fileOwner": user.username, 
+          "hasAccess": [user.username]
         }
       };
       try {
@@ -136,3 +149,13 @@ async function sendMail(subject, data) {
 }
   
 
+function isCorrectData(user) {
+  if (user.username == "" || user.name == "" || user.surname == "" || user.birthday == "" || user.email == "" || user.password == ""){
+    return false
+  }
+  if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(user.email))
+  {
+    return true
+  }
+  return false
+}

@@ -12,10 +12,11 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UploadComponent } from './components/upload/upload.component'
-import { UploadService } from './services/upload.service';
 import { InviteFamilyComponent } from './components/invite-family/invite-family.component';
 import { RegisterByInvitationComponent } from './components/register-by-invitation/register-by-invitation.component';
 import { VerifyRegistrationComponent } from './components/verify-registration/verify-registration.component';
+import { GalleryViewComponent } from './components/gallery-view/gallery-view.component';
+import { UploadService } from './services/gallery/upload.service';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import { VerifyRegistrationComponent } from './components/verify-registration/ve
     UploadComponent,
     InviteFamilyComponent,
     RegisterByInvitationComponent,
-    VerifyRegistrationComponent
+    VerifyRegistrationComponent,
+    GalleryViewComponent
   ],
   imports: [
     BrowserModule,

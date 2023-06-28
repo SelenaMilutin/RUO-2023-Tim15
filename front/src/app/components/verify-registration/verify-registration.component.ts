@@ -1,4 +1,6 @@
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { keys } from 'src/environments/keys';
 
 @Component({
   selector: 'app-verify-registration',
@@ -7,9 +9,26 @@ import { Component, OnInit } from '@angular/core';
 })
 export class VerifyRegistrationComponent implements OnInit {
 
-  constructor() { }
+  constructor(private readonly http: HttpClient) { }
 
   ngOnInit(): void {
   }
+
+  verify() {
+    const params = new HttpParams().set("", "")
+    this.http.put(keys.apiGateway + "user", 
+    {
+      "email": "sele@smail.com"
+    }
+    , {headers: new HttpHeaders().set("content-type", "application/json")})
+    .subscribe(
+      respoce => {
+        console.log(respoce)
+        alert(JSON.stringify(respoce))
+      }
+      )
+   
+  }
+
 
 }

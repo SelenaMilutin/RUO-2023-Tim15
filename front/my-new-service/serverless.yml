@@ -45,7 +45,24 @@ provider:
         - "Fn::GetAtt": [users, Arn]
         - arn:aws:sns:eu-central-1:260436118818:DatabaseTopic
         - arn:aws:ses:*
-
+        - "Fn::GetAtt": [galleryTable, Arn]
+        - "Fn::GetAtt": [usersByInvitation, Arn]
+    - Effect: Allow
+      Action:
+        - s3:ListBucket
+      Resource:
+        - arn:aws:s3:::milostim15.gallery
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource:
+        - arn:aws:s3:::milostim15.gallery/*
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+      Resource:
+        - "*"
 
 # you can overwrite defaults here
  
@@ -85,18 +102,6 @@ package:
 #    - include-me-dir/**
 
 functions:
-  testlambda:
-    handler: user/test.test
-    package:
-      include: 'user/**'
-    url:
-      cors:
-        allowedOrigins:
-          - '*'
-        allowedHeaders:
-          - Authorization
-        allowedMethods:
-          - POST
 
   registerUser:
       handler: user/register.registerUser
@@ -110,6 +115,17 @@ functions:
             - Authorization
           allowedMethods:
             - POST
+      events:
+        # REST API endpoint of API Gateway
+        - http:
+            # Path for this endpoint
+            path: user
+            # HTTP method for this endpoint
+            method: post
+            # Enable CORS. Don't forget to return the right header in your response
+            cors: true
+
+     
       
       # events:
       # - sns:
@@ -127,6 +143,15 @@ functions:
           - Authorization
         allowedMethods:
           - PUT
+    events:
+        # REST API endpoint of API Gateway
+        - http:
+            # Path for this endpoint
+            path: famillyInvitation
+            # HTTP method for this endpoint
+            method: put
+            # Enable CORS. Don't forget to return the right header in your response
+            cors: true
 
   userFillsData:
     handler: familyInvitation/userFillsData.userFillsData
@@ -139,7 +164,16 @@ functions:
         allowedHeaders:
           - Authorization
         allowedMethods:
-          - PUT
+          - POST
+    events:
+        # REST API endpoint of API Gateway
+        - http:
+            # Path for this endpoint
+            path: famillyInvitation
+            # HTTP method for this endpoint
+            method: post
+            # Enable CORS. Don't forget to return the right header in your response
+            cors: true
   
   createUser:
     handler: familyInvitation/createUser.createUser
@@ -153,6 +187,15 @@ functions:
           - Authorization
         allowedMethods:
           - PUT
+    events:
+        # REST API endpoint of API Gateway
+        - http:
+            # Path for this endpoint
+            path: user
+            # HTTP method for this endpoint
+            method: put
+            # Enable CORS. Don't forget to return the right header in your response
+            cors: true
   
   deleteUser:
     handler: familyInvitation/deleteUser.delete
@@ -179,18 +222,31 @@ functions:
 #           allowedMethods:
 #             - POST
 
-  # uploadGallery:
-  #     handler: gallery/upload.upload
-  #     package:
-  #       include: 'gallery/**'
-  #     url:
-  #       cors:
-  #         allowedOrigins:
-  #           - '*'
-  #         allowedHeaders:
-  #           - Authorization
-  #         allowedMethods:
-  #           - POST
+  uploadS3:
+      handler: gallery/uploadS3.upload
+      package:
+        include: 'gallery/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+
+  uploadDDB:
+      handler: gallery/uploadDDB.upload
+      package:
+        include: 'gallery/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
   # hello:
   #   handler: handler.hello
 #    The following are a few example events you can configure
@@ -236,6 +292,7 @@ functions:
 # you can add CloudFormation resource templates here
 resources:
   Resources:
+
     users:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -272,9 +329,39 @@ resources:
     SNSSubscription:
       Type: AWS::SNS::Subscription
       Properties:
+        Endpoint: petefi.katarinaspremic@gmail.com
+        Protocol: email
+        TopicArn: {"Ref": "SuperTopic"}
+
+    SNSSubscription2:
+      Type: AWS::SNS::Subscription
+      Properties:
         Endpoint: selena.milutin@gmail.com
         Protocol: email
         TopicArn: {"Ref": "SuperTopic"}
+
+    galleryTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: serverlessGallery
+        AttributeDefinitions:
+          - AttributeName: hasAccess
+            AttributeType: S
+          - AttributeName: albumName
+            AttributeType: S
+        KeySchema:
+          - AttributeName: hasAccess
+            KeyType: HASH
+          - AttributeName: albumName
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    galleryBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: milostim15.gallery
 #  Outputs:
 #     NewOutput:
 #       Description: "Description for the output"

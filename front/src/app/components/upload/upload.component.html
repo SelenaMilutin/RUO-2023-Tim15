@@ -4,9 +4,50 @@
 <div class="file-upload">
 
     <button mat-button class="upload-btn"
-        (click)="fileUpload.click()">Upload</button>
-   <p *ngIf="uploadSuccess && uploadTried">Uploaded successfully.</p>
-   <p *ngIf="!uploadSuccess && uploadTried">Upload failed.</p>
+        (click)="fileUpload.click()">Choose file for upload</button>
 
+    <div class="file-staging-area"
+     >
+        <mat-form-field>
+            <mat-label>File name</mat-label>
+            <input matInput [(ngModel)]="fileName">
+        </mat-form-field>
+
+        <mat-form-field>
+            <mat-label>Description</mat-label>
+            <textarea matInput
+                      cdkTextareaAutosize
+                      #autosize="cdkTextareaAutosize"
+                      cdkAutosizeMinRows="2"
+                      cdkAutosizeMaxRows="5"
+                      matInput [(ngModel)]="fileDescription"></textarea>
+        </mat-form-field>
+
+          <mat-form-field class="tags" appearance="fill">
+            <mat-chip-list #tagChipList>
+              <mat-chip
+                *ngFor="let t of tags"
+                (removed)="removeTag(t)">
+                {{t}}
+                <button matChipRemove>
+                  <!-- <mat-icon>cancel</mat-icon>  -->
+                  x
+                </button>
+              </mat-chip>
+            </mat-chip-list>
+            <input placeholder="Tags" #tagInput [formControl]="tagCtrl"
+              [matChipInputFor]="tagChipList"
+              [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+              (matChipInputTokenEnd)="addTag($event)"/>
+          </mat-form-field>
+
+          <p>{{uploadStatusMessage}}</p>
+          <button mat-button class="upload-btn"
+            (click)="upload()">Upload</button>
+
+    </div>
+<!-- 
+   <p *ngIf="uploadSuccess && uploadTried">Uploaded successfully.</p>
+   <p *ngIf="!uploadSuccess && uploadTried">Upload failed.</p> -->
 
 </div>

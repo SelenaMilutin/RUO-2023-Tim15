@@ -23,7 +23,8 @@ import { MatSortModule } from '@angular/material/sort';
 import {MatGridListModule} from '@angular/material/grid-list';
 import { MatBadgeModule } from "@angular/material/badge";
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-
+import { MatChipsModule } from '@angular/material/chips';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 
 @NgModule({
@@ -53,7 +54,9 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     MatBadgeModule, 
     FormsModule,
     ReactiveFormsModule,
-    MatIconModule
+    MatIconModule,
+    MatChipsModule,
+    MatAutocompleteModule,
   ],
   exports: [
     MatButtonModule,
@@ -82,7 +85,9 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
     MatBadgeModule,
     FormsModule, 
     ReactiveFormsModule,
-    MatIconModule
+    MatIconModule,
+    MatChipsModule,
+    MatAutocompleteModule,
   ],
 })
 export class MaterialModule {}

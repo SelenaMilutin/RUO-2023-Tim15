@@ -1,5 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { keys } from 'src/environments/keys';
 
 @Component({
   selector: 'app-invite-family',
@@ -15,16 +16,15 @@ export class InviteFamilyComponent implements OnInit {
   }
 
   sendInvitation(): void {
-    this.http.put(" ", 
-    {"callerUsername": "ucitaj ime",
-      "callerEmail": "",
+    this.http.put(keys.apiGateway + "famillyInvitation", 
+    {"callerUsername":"user.callerUsername",
      "email": this.newMail,
     }
-    , {headers: new HttpHeaders().set("content-type", "application/json")})
+    , {headers: new HttpHeaders().set('Content-Type', 'application/json')})
     .subscribe(
       respoce => {
         console.log(respoce)
-        alert(respoce)
+        alert(JSON.stringify(respoce))
       }
       )
   }

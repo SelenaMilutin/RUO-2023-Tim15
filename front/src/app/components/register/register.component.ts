@@ -33,21 +33,21 @@ export class RegisterComponent implements OnInit {
   }
 
   registerAccount(): void {
-    if (!this.registerAccountForm.valid){
-      alert("Podaci")
-      return
-    }
-  if (this.registerAccountForm.value.password != this.registerAccountForm.value.confirmPassword) {
-    alert("Lozinke nisu iste")
-    return
-  }
+  //   if (!this.registerAccountForm.valid){
+  //     alert("Podaci")
+  //     return
+  //   }
+  // if (this.registerAccountForm.value.password != this.registerAccountForm.value.confirmPassword) {
+  //   alert("Lozinke nisu iste")
+  //   return
+  // }
     // this.addWithService()
     this.doRegister()
   }
  
   doRegister() {
     const params = new HttpParams().set("", "")
-    this.http.post(" https://2yqmqwkyhc.execute-api.eu-central-1.amazonaws.com/firstStage", 
+    this.http.post(keys.apiGateway+"user", 
     {"username": this.registerAccountForm.value.username,
      "name": this.registerAccountForm.value.name,
      "surname": this.registerAccountForm.value.surname,
@@ -55,12 +55,12 @@ export class RegisterComponent implements OnInit {
      "email": this.registerAccountForm.value.email,
      "password": this.registerAccountForm.value.password
     }
-    , {headers: new HttpHeaders().set("content-type", "application/json")})
+    , {headers: new HttpHeaders().set('Content-Type', 'application/json')})
     .subscribe(
       respoce => {
         console.log(respoce)
-        alert(respoce)
-        this.router.navigate(['/']);
+        alert(JSON.stringify(respoce))
+        // this.router.navigate(['/']);
       }
       )
    

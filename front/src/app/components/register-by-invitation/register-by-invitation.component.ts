@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { keys } from 'src/environments/keys';
 
 @Component({
   selector: 'app-register-by-invitation',
@@ -42,7 +43,7 @@ this.doRegister()
 
 doRegister() {
 const params = new HttpParams().set("", "")
-this.http.post(" ", 
+this.http.post(keys.apiGateway + "famillyInvitation", 
 {"username": this.registerAccountForm.value.username,
 "name": this.registerAccountForm.value.name,
 "surname": this.registerAccountForm.value.surname,
@@ -55,7 +56,7 @@ this.http.post(" ",
 .subscribe(
 respoce => {
 console.log(respoce)
-alert(respoce)
+alert(JSON.stringify(respoce))
 }
 )
 

@@ -1,6 +1,8 @@
 const AWS = require("aws-sdk");
 const docClient = new AWS.DynamoDB.DocumentClient();
 const createResponse = require('../utility/utils.js').createResponse;
+const sendMail = require('../utility/utils.js').sendMail;
+
 
 module.exports.delete = async (event, context) => {
         // Previous step has failed
@@ -16,6 +18,8 @@ module.exports.delete = async (event, context) => {
           }
           
               try {
+                var data = "You have succesfully deleted " + file.fileName + " in album " + file.albumName
+                sendMail("Upload file", data)
               const data = await docClient.delete(params).promise()
               return {
             statusCode: 200,

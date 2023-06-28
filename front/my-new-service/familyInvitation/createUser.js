@@ -32,6 +32,17 @@ module.exports.createUser= async (event, context) => {
 }
             }
         var user = data.Item
+        var albumParams = {
+          TableName: 'serverlessAlbums',
+          Item: {
+            "s3Link": user.username + "/root",
+            "albumName": "root",
+            "subAlbums": []
+          }
+        };
+        try {
+      await docClient.put(albumParams).promise();}
+      catch(err) {}
         var userparams = {
         TableName: 'serverlessUsers',
         Item: {

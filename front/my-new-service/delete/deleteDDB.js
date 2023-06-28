@@ -5,7 +5,7 @@ const createResponse = require('../utility/utils.js').createResponse;
 module.exports.delete = async (event, context) => {
         // Previous step has failed
         if (event.hasOwnProperty('statusCode')) return event;
-        var user = JSON.parse(event)
+       var user = event['body']
         var params = {
             TableName: 'serverlessGallery',
             /* Item properties will depend on your application concerns */

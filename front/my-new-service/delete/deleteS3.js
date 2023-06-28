@@ -4,16 +4,7 @@ const s3Bucket = "milostim15.gallery";
 const createResponse = require('../utility/utils.js').createResponse;
 
 module.exports.delete = async (event, context) => {
-    body = JSON.parse(event.body)
-    const objectName = body.albumName + '/' + body.fileName;
-    try {
-        const exists = await checkIfFileExists(s3Bucket, objectName);
-        if (!exists) return createResponse(400, "File with same name nost not exist in album.");
-    }
-    catch(err) {
-        console.error("Error:", JSON.stringify(err));
-        return createResponse(500, 'Error');
-    };
+    
         // Previous step has failed
         var params = {
             Bucket: s3Bucket,
@@ -24,10 +15,11 @@ module.exports.delete = async (event, context) => {
             */
           };
           
-          s3.deleteObject(params, function(err, data) {
-            if (err) return createResponse(500, 'Error'); // an error occurred
-            else     return createResponse(200, "Deleted S3");           // successful response
-          });
+          try {
+              const data = await s3.deleteObject(params).promise()
+                return event;
+          } catch (err) {console.log(JSON.stringify(err)); return createResponse(500, 'Error');}
+          
 
 }
 

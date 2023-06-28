@@ -38,6 +38,7 @@ provider:
       Action:
         - s3:GetObject
         - s3:PutObject
+        - s3:DeleteObject
       Resource:
         - arn:aws:s3:::milostim15.gallery/*
     - Effect: Allow
@@ -201,7 +202,7 @@ functions:
   deleteS3:
       handler: delete/deleteS3.delete
       package:
-        include: 'gallery/**'
+        include: 'delete/**'
       url:
         cors:
           allowedOrigins:
@@ -214,7 +215,7 @@ functions:
   deleteDDB:
       handler: delete/deleteDDB.delete
       package:
-        include: 'gallery/**'
+        include: 'delete/**'
       url:
         cors:
           allowedOrigins:

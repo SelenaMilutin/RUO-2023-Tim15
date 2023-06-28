@@ -1,3 +1,4 @@
+
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as AWS from 'aws-sdk'
@@ -17,10 +18,11 @@ export class UploadService {
     secretAccessKey: keys.secretKey });
   }
 
-  private apiUrl = 'https://vqp4k2kqs3.execute-api.eu-central-1.amazonaws.com/dev/upload';
+  private apiUrl = 'https://9ln7bu8pi2.execute-api.eu-central-1.amazonaws.com';
+  private stagePath = '/dev';
+  private resourcePath = '/upload';
+  private url = this.apiUrl + this.stagePath + this.resourcePath;
 
-  private url = this.apiUrl;
-  
   private response : any;
   
   async uploadFile(req: UploadRequest): Promise<any> {
@@ -49,7 +51,7 @@ export class UploadService {
   }
   
   getArn(req: UploadRequest): Observable<any> {
-    return this.http.post<UploadRequest>(this.url, req)
+    return this.http.post(this.url, {body: req.body})
   }
   
   async waitForStepFunctionCompletion(executionArn: string): Promise<void> {

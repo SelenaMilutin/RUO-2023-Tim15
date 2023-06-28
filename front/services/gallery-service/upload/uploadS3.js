@@ -4,17 +4,12 @@ const s3Bucket = "gst.milostim15.gallery";
 const createResponse = require('../utility/utils.js').createResponse;
 
 module.exports.upload = async (event, context) => {
-    
-    console.log("recieved event", JSON.stringify(event, null, 2))
-    console.log("recieved context", JSON.stringify(context, null, 2))
-    
-    if(event.hasOwnProperty('body')) {
-        const res = validateRequest(event.body);
-        if (res != null) return res;
-    } else return createResponse(400, "Invalid request");
+    console.log(event)
+    const res = validateRequest(event.body);
+    if (res != null) return createResponse(400, "Invalid request");
 
-    const body = event.body;
-    const objectName = body.hasAccess + '/' + body.albumName + '/' + body.fileName;
+    const body = event.body
+    const objectName = body.albumName + '/' + body.fileName;
 
     try {
         const exists = await checkIfFileExists(s3Bucket, objectName);
@@ -58,7 +53,7 @@ async function checkIfFileExists(bucketName, fileName) {
 function validateRequest(obj) {
 
     if (!obj.hasOwnProperty('fileName') || !obj.hasOwnProperty('fileType') || !obj.hasOwnProperty('fileSize')
-        ||!obj.hasOwnProperty('description') || !obj.hasOwnProperty('tags') || !obj.hasOwnProperty('owner')
+        ||!obj.hasOwnProperty('description') || !obj.hasOwnProperty('tags') || !obj.hasOwnProperty('fileOwner')
         || !obj.hasOwnProperty('hasAccess') || !obj.hasOwnProperty('albumName') || !obj.hasOwnProperty('file')) {
         return createResponse(400, "Invalid request");
     }
@@ -74,7 +69,7 @@ function validateRequest(obj) {
 
     try {
         const size = parseInt(obj['fileSize']);
-        if (size > 524,288,000) return createResponse(400, "Files larger than 500MB aren't accepted.");
+        if (size > 240000) return createResponse(400, "Files larger than 240MB aren't accepted.");
       } catch (error) {
         return createResponse(400, "Invalid request");
     }

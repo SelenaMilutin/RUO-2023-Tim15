@@ -5,16 +5,12 @@ const createResponse = require('../utility/utils.js').createResponse;
 
 module.exports.upload = async (event, context) => {
     
-    console.log("recieved event", JSON.stringify(event, null, 2))
-    console.log("recieved context", JSON.stringify(context, null, 2))
-    
-    if(event.hasOwnProperty('body')) {
-        const res = validateRequest(event.body);
-        if (res != null) return res;
-    } else return createResponse(400, "Invalid request");
+    const res = validateRequest(event.body);
+    if (res != null) return createResponse(400, "Invalid request");
 
-    const body = event.body;
-    const objectName = body.hasAccess + '/' + body.albumName + '/' + body.fileName;
+
+    const body = event.body
+    const objectName = body.albumName + '/' + body.fileName;
 
     try {
         const exists = await checkIfFileExists(s3Bucket, objectName);
@@ -22,7 +18,7 @@ module.exports.upload = async (event, context) => {
     }
     catch(error) {
         console.error("Error:", error);
-        return createResponse(400, 'Error');
+        return createResponse(500, 'Error');
     };
 
     const objectData = Buffer.from(body['file'], 'base64');
@@ -38,7 +34,7 @@ module.exports.upload = async (event, context) => {
         
     } catch (error) {
         console.error("Error:", error);
-        return createResponse(400, "Error");
+        return createResponse(500, "Error");
     } 
 };
 
@@ -58,7 +54,7 @@ async function checkIfFileExists(bucketName, fileName) {
 function validateRequest(obj) {
 
     if (!obj.hasOwnProperty('fileName') || !obj.hasOwnProperty('fileType') || !obj.hasOwnProperty('fileSize')
-        ||!obj.hasOwnProperty('description') || !obj.hasOwnProperty('tags') || !obj.hasOwnProperty('owner')
+        ||!obj.hasOwnProperty('description') || !obj.hasOwnProperty('tags') || !obj.hasOwnProperty('fileOwner')
         || !obj.hasOwnProperty('hasAccess') || !obj.hasOwnProperty('albumName') || !obj.hasOwnProperty('file')) {
         return createResponse(400, "Invalid request");
     }
@@ -70,14 +66,6 @@ function validateRequest(obj) {
         return createResponse(400, "File type is not supported.");
     }
     if (obj['tags'].length > 15) return createResponse(400, "Up to 15 tags are allowed per file.");
-
-
-    try {
-        const size = parseInt(obj['fileSize']);
-        if (size > 524,288,000) return createResponse(400, "Files larger than 500MB aren't accepted.");
-      } catch (error) {
-        return createResponse(400, "Invalid request");
-    }
 
     return null;
 

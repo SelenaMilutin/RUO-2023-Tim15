@@ -7,9 +7,9 @@ button:hover {
     background-color: #6A7A9E;
 }
 
-p {
+/* p {
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-}
+} */
 
 .page {
     margin: 2vh;
@@ -17,14 +17,12 @@ p {
 
 mat-card {
     max-width: 350px;
-    margin-bottom: 8px;
  }
 
 .grid { 
-    padding-top: 5vh;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    grid-gap: 30px;
+    grid-gap: 3px;
     align-items: stretch;
 }
 
@@ -78,5 +76,19 @@ a {
 ::ng-deep mat-icon{
     margin-left: 2vh;
     margin-right: 1vh;
-    font-size: 3.5vh;
+}
+
+.button-grid, mat-button-toggle-group {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+.mat-button-toggle {
+    flex-grow: 1;
+    width: auto;
+  }
+
+.status {
+    text-align: center;
 }

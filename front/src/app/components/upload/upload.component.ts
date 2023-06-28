@@ -28,24 +28,25 @@ export class UploadComponent implements OnInit {
   uploadStatusMessage : string = '';
 
   @Input()
-  currentAlbumName : string = localStorage.getItem('user') + '/' + 'root';
+  currentAlbumName : string = '';
 
   constructor(private readonly uploadService: UploadService) {}
 
 
   async upload() {
+    console.log("CURRENT ALBUM NAME FROM UPLOAD COMPONENT", this.currentAlbumName);
     if (this.validateFileName() === false) {
       this.uploadStatusMessage = 'Invalid file name. Cannot be blank. Characters "/" and "-" are not permitted and are replaced with "_".'
       this.transformFileName()
     }
-    let owner = localStorage.getItem('user')
+    let owner = localStorage.getItem('username')
     if (owner == undefined) owner = "mico" // for testing
 
     let fileContent = ''
     try {
       fileContent = await this.readFileAsBase64(this.file);
     } catch {
-      this.uploadStatusMessage = "Error. File too large or invalid type."
+      this.uploadStatusMessage = "Error. File of invalid size or invalid type."
       return;
     }
     let req : UploadRequest = {
@@ -60,7 +61,7 @@ export class UploadComponent implements OnInit {
         fileSize: this.file.size,
         description: this.fileDescription,
         tags: this.tags,
-        owner: owner,
+        fileOwner: owner,
         hasAccess: owner,
         albumName: this.currentAlbumName,
         file: fileContent
@@ -68,7 +69,11 @@ export class UploadComponent implements OnInit {
     }
     console.log(req)
     let res = await this.uploadService.uploadFile(req);
-    this.uploadStatusMessage = res.substring(1, res.length - 1);
+    try {
+      this.uploadStatusMessage = res.substring(1, res.length - 1);
+    } catch (error) {
+      this.uploadStatusMessage = "Internal error";
+    }
   }
 
   selectFile(event: any) {
@@ -77,6 +82,10 @@ export class UploadComponent implements OnInit {
       const file = this.selectedFiles.item(0); 
       if (file != undefined)
       {
+        if (file.size > 240000) {
+          this.uploadStatusMessage = "Files can't be larger than 240KB."
+          return
+        }
         this.fileName = file.name;
         this.file = file;
         this.transformFileName();

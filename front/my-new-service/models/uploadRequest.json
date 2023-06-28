@@ -1,0 +1,55 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "fileName": {
+        "type": "string"
+      },
+      "fileType": {
+        "type": "string"
+      },
+      "fileSize": {
+        "type": "string"
+      },
+      "dateCreated": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "dateModified": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "description": {
+        "type": "string"
+      },
+      "tags": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "owner": {
+        "type": "string"
+      },
+      "hasAccess": {
+        "type": "string"
+      },
+      "s3Name": {
+        "type": "string"
+      },
+      "albumName": {
+        "type": "string"
+      },
+      "file": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "fileName",
+      "fileType",
+      "fileSize",
+      "owner",
+      "albumName",
+      "file"
+    ]
+  }

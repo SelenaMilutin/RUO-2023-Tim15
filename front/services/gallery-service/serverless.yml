@@ -18,17 +18,18 @@ provider:
         - dynamodb:DeleteItem
       Resource:
         - "Fn::GetAtt": [galleryTable, Arn]
+        - "Fn::GetAtt": [albumsTable, Arn]
     - Effect: Allow
       Action:
         - s3:ListBucket
       Resource:
-        - arn:aws:s3:::milostim15.gallery
+        - arn:aws:s3:::gst.milostim15.gallery
     - Effect: Allow
       Action:
         - s3:GetObject
         - s3:PutObject
       Resource:
-        - arn:aws:s3:::milostim15.gallery/*
+        - arn:aws:s3:::gst.milostim15.gallery/*
     - Effect: Allow
       Action:
         - states:StartExecution
@@ -75,6 +76,60 @@ functions:
             - Authorization
           allowedMethods:
             - POST
+
+  getFromAlbum:
+      handler: view/getFromAlbum.get
+      package:
+        include: 'view/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: view
+          method: post
+          cors: true
+
+  getSubAlbums:
+      handler: view/getSubAlbums.get
+      package:
+        include: 'view/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: album
+          method: post
+          cors: true
+
+  createAlbum:
+      handler: view/createAlbum.post
+      package:
+        include: 'view/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: album/create
+          method: post
+          cors: true
   
 resources:
   Resources:
@@ -82,7 +137,7 @@ resources:
     galleryTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: serverlessGallery
+        TableName: gst-serverlessGallery
         AttributeDefinitions:
           - AttributeName: s3Name
             AttributeType: S
@@ -96,12 +151,26 @@ resources:
     galleryBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: milostim15.gallery
+        BucketName: gst.milostim15.gallery
+
+    albumsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: gst-serverlessAlbums
+        AttributeDefinitions:
+          - AttributeName: s3Link
+            AttributeType: S
+        KeySchema:
+          - AttributeName: s3Link
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
 
 stepFunctions:
   stateMachines:
     uploadStepFunction:
-      name: 'uploadStepFunction'
+      name: 'gst-uploadStepFunction'
       events:
       - http:
           path: /upload

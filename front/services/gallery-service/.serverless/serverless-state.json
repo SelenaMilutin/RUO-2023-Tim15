@@ -1,0 +1,1995 @@
+{
+  "service": {
+    "service": "gallery-service",
+    "serviceObject": {
+      "name": "gallery-service"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs14.x",
+      "stage": "dev",
+      "region": "eu-central-1",
+      "iamRoleStatements": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:DescribeTable",
+            "dynamodb:Query",
+            "dynamodb:Scan",
+            "dynamodb:GetItem",
+            "dynamodb:PutItem",
+            "dynamodb:UpdateItem",
+            "dynamodb:DeleteItem"
+          ],
+          "Resource": [
+            {
+              "Fn::GetAtt": [
+                "galleryTable",
+                "Arn"
+              ]
+            },
+            {
+              "Fn::GetAtt": [
+                "albumsTable",
+                "Arn"
+              ]
+            }
+          ]
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "s3:ListBucket"
+          ],
+          "Resource": "arn:aws:s3:::gst.milostim15.gallery"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "s3:GetObject",
+            "s3:PutObject"
+          ],
+          "Resource": "arn:aws:s3:::gst.milostim15.gallery/*"
+        },
+        {
+          "Effect": "Allow",
+          "Action": [
+            "states:StartExecution",
+            "states:StopExecution",
+            "states:DescribeExecution",
+            "states:ListExecutions",
+            "states:ListStateMachines",
+            "states:DescribeStateMachine",
+            "states:GetExecutionHistory"
+          ],
+          "Resource": [
+            "arn:aws:states:*:*:stateMachine:*",
+            "arn:aws:states:*:*:execution:*"
+          ]
+        }
+      ],
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "ServerlessDeploymentBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "ServerlessDeploymentBucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Action": "s3:*",
+                    "Effect": "Deny",
+                    "Principal": "*",
+                    "Resource": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    "Condition": {
+                      "Bool": {
+                        "aws:SecureTransport": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "UploadS3LogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/gallery-service-dev-uploadS3"
+            }
+          },
+          "UploadDDBLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/gallery-service-dev-uploadDDB"
+            }
+          },
+          "GetFromAlbumLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/gallery-service-dev-getFromAlbum"
+            }
+          },
+          "GetSubAlbumsLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/gallery-service-dev-getSubAlbums"
+            }
+          },
+          "CreateAlbumLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/gallery-service-dev-createAlbum"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "gallery-service",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/gallery-service-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/gallery-service-dev*:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][1]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][2]"
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][3]"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "gallery-service",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "UploadS3LambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/gallery-service/dev/1687912378864-2023-06-28T00:32:58.864Z/uploadS3.zip"
+              },
+              "Handler": "upload/uploadS3.upload",
+              "Runtime": "nodejs14.x",
+              "FunctionName": "gallery-service-dev-uploadS3",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "UploadS3LogGroup"
+            ]
+          },
+          "UploadDDBLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/gallery-service/dev/1687912378864-2023-06-28T00:32:58.864Z/uploadDDB.zip"
+              },
+              "Handler": "upload/uploadDDB.upload",
+              "Runtime": "nodejs14.x",
+              "FunctionName": "gallery-service-dev-uploadDDB",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "UploadDDBLogGroup"
+            ]
+          },
+          "GetFromAlbumLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/gallery-service/dev/1687912378864-2023-06-28T00:32:58.864Z/getFromAlbum.zip"
+              },
+              "Handler": "view/getFromAlbum.get",
+              "Runtime": "nodejs14.x",
+              "FunctionName": "gallery-service-dev-getFromAlbum",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "GetFromAlbumLogGroup"
+            ]
+          },
+          "GetSubAlbumsLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/gallery-service/dev/1687912378864-2023-06-28T00:32:58.864Z/getSubAlbums.zip"
+              },
+              "Handler": "view/getSubAlbums.get",
+              "Runtime": "nodejs14.x",
+              "FunctionName": "gallery-service-dev-getSubAlbums",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "GetSubAlbumsLogGroup"
+            ]
+          },
+          "CreateAlbumLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "S3Key": "serverless/gallery-service/dev/1687912378864-2023-06-28T00:32:58.864Z/createAlbum.zip"
+              },
+              "Handler": "view/createAlbum.post",
+              "Runtime": "nodejs14.x",
+              "FunctionName": "gallery-service-dev-createAlbum",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "CreateAlbumLogGroup"
+            ]
+          },
+          "UploadS3LambdaVersiontZoUHIeX9GTuzBWHdSpyKKJof5q6U9CZYocCwvU4": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "UploadS3LambdaFunction"
+              },
+              "CodeSha256": "4VAF5TUVP9SRHgcCWyGq1zy5dx5f5saEZt3y8fByCb4="
+            }
+          },
+          "UploadS3LambdaFunctionUrl": {
+            "Type": "AWS::Lambda::Url",
+            "Properties": {
+              "AuthType": "NONE",
+              "TargetFunctionArn": {
+                "Fn::GetAtt": [
+                  "UploadS3LambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Cors": {
+                "AllowHeaders": [
+                  "Authorization"
+                ],
+                "AllowMethods": [
+                  "POST"
+                ],
+                "AllowOrigins": [
+                  "*"
+                ]
+              }
+            }
+          },
+          "UploadS3LambdaPermissionFnUrl": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"UploadS3LambdaFunctionUrl\"][\"Properties\"][\"TargetFunctionArn\"]"
+              },
+              "Action": "lambda:InvokeFunctionUrl",
+              "Principal": "*",
+              "FunctionUrlAuthType": "NONE"
+            }
+          },
+          "UploadDDBLambdaVersion98oVvJqMTdfYZpZL9Sr27AlqEFpcOgQIbNAoBapK84": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "UploadDDBLambdaFunction"
+              },
+              "CodeSha256": "4VAF5TUVP9SRHgcCWyGq1zy5dx5f5saEZt3y8fByCb4="
+            }
+          },
+          "UploadDDBLambdaFunctionUrl": {
+            "Type": "AWS::Lambda::Url",
+            "Properties": {
+              "AuthType": "NONE",
+              "TargetFunctionArn": {
+                "Fn::GetAtt": [
+                  "UploadDDBLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Cors": {
+                "AllowHeaders": [
+                  "Authorization"
+                ],
+                "AllowMethods": [
+                  "POST"
+                ],
+                "AllowOrigins": [
+                  "*"
+                ]
+              }
+            }
+          },
+          "UploadDDBLambdaPermissionFnUrl": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"UploadDDBLambdaFunctionUrl\"][\"Properties\"][\"TargetFunctionArn\"]"
+              },
+              "Action": "lambda:InvokeFunctionUrl",
+              "Principal": "*",
+              "FunctionUrlAuthType": "NONE"
+            }
+          },
+          "GetFromAlbumLambdaVersionk3EUqIVg7bWqVfga8DJK2gEIIJsDLYrbKYz3ZNjtck": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "GetFromAlbumLambdaFunction"
+              },
+              "CodeSha256": "ooqslJue745IGkosrvGlgQ38YRl9WNE/dowsxCbfNJI="
+            }
+          },
+          "GetFromAlbumLambdaFunctionUrl": {
+            "Type": "AWS::Lambda::Url",
+            "Properties": {
+              "AuthType": "NONE",
+              "TargetFunctionArn": {
+                "Fn::GetAtt": [
+                  "GetFromAlbumLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Cors": {
+                "AllowHeaders": [
+                  "Authorization"
+                ],
+                "AllowMethods": [
+                  "POST"
+                ],
+                "AllowOrigins": [
+                  "*"
+                ]
+              }
+            }
+          },
+          "GetFromAlbumLambdaPermissionFnUrl": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"GetFromAlbumLambdaFunctionUrl\"][\"Properties\"][\"TargetFunctionArn\"]"
+              },
+              "Action": "lambda:InvokeFunctionUrl",
+              "Principal": "*",
+              "FunctionUrlAuthType": "NONE"
+            }
+          },
+          "GetSubAlbumsLambdaVersionlbWlCtQhE0O7ug3X48FP06VaC5WQiQkO0srz3xzIkQ": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "GetSubAlbumsLambdaFunction"
+              },
+              "CodeSha256": "ooqslJue745IGkosrvGlgQ38YRl9WNE/dowsxCbfNJI="
+            }
+          },
+          "GetSubAlbumsLambdaFunctionUrl": {
+            "Type": "AWS::Lambda::Url",
+            "Properties": {
+              "AuthType": "NONE",
+              "TargetFunctionArn": {
+                "Fn::GetAtt": [
+                  "GetSubAlbumsLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Cors": {
+                "AllowHeaders": [
+                  "Authorization"
+                ],
+                "AllowMethods": [
+                  "POST"
+                ],
+                "AllowOrigins": [
+                  "*"
+                ]
+              }
+            }
+          },
+          "GetSubAlbumsLambdaPermissionFnUrl": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"GetSubAlbumsLambdaFunctionUrl\"][\"Properties\"][\"TargetFunctionArn\"]"
+              },
+              "Action": "lambda:InvokeFunctionUrl",
+              "Principal": "*",
+              "FunctionUrlAuthType": "NONE"
+            }
+          },
+          "CreateAlbumLambdaVersion5GT4gSvkgWh9AFbBcnuS814Oacww7jrO4bEmwglado": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "CreateAlbumLambdaFunction"
+              },
+              "CodeSha256": "ooqslJue745IGkosrvGlgQ38YRl9WNE/dowsxCbfNJI="
+            }
+          },
+          "CreateAlbumLambdaFunctionUrl": {
+            "Type": "AWS::Lambda::Url",
+            "Properties": {
+              "AuthType": "NONE",
+              "TargetFunctionArn": {
+                "Fn::GetAtt": [
+                  "CreateAlbumLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Cors": {
+                "AllowHeaders": [
+                  "Authorization"
+                ],
+                "AllowMethods": [
+                  "POST"
+                ],
+                "AllowOrigins": [
+                  "*"
+                ]
+              }
+            }
+          },
+          "CreateAlbumLambdaPermissionFnUrl": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"CreateAlbumLambdaFunctionUrl\"][\"Properties\"][\"TargetFunctionArn\"]"
+              },
+              "Action": "lambda:InvokeFunctionUrl",
+              "Principal": "*",
+              "FunctionUrlAuthType": "NONE"
+            }
+          },
+          "GstDashuploadStepFunctionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": {
+                        "Fn::Sub": "states.${AWS::Region}.amazonaws.com"
+                      }
+                    },
+                    "Action": "sts:AssumeRole"
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": "dev-gallery-service-statemachine",
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "lambda:InvokeFunction"
+                        ],
+                        "Resource": [
+                          "arn:aws:lambda:eu-central-1:260436118818:function:gallery-service-dev-uploadS3",
+                          {
+                            "Fn::Sub": [
+                              "${functionArn}:*",
+                              {
+                                "functionArn": "arn:aws:lambda:eu-central-1:260436118818:function:gallery-service-dev-uploadS3"
+                              }
+                            ]
+                          },
+                          "arn:aws:lambda:eu-central-1:260436118818:function:gallery-service-dev-uploadDDB",
+                          {
+                            "Fn::Sub": [
+                              "${functionArn}:*",
+                              {
+                                "functionArn": "arn:aws:lambda:eu-central-1:260436118818:function:gallery-service-dev-uploadDDB"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "GstDashuploadStepFunction": {
+            "Type": "AWS::StepFunctions::StateMachine",
+            "Properties": {
+              "DefinitionString": "{\n  \"StartAt\": \"UploadS3\",\n  \"States\": {\n    \"UploadS3\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"arn:aws:lambda:eu-central-1:260436118818:function:gallery-service-dev-uploadS3\",\n      \"ResultPath\": \"$.uploadS3Result\",\n      \"Next\": \"UploadDDB\"\n    },\n    \"UploadDDB\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"arn:aws:lambda:eu-central-1:260436118818:function:gallery-service-dev-uploadDDB\",\n      \"InputPath\": \"$.uploadS3Result\",\n      \"End\": true\n    }\n  }\n}",
+              "RoleArn": {
+                "Fn::GetAtt": [
+                  "GstDashuploadStepFunctionRole",
+                  "Arn"
+                ]
+              },
+              "StateMachineName": "gst-uploadStepFunction"
+            },
+            "DependsOn": [
+              "GstDashuploadStepFunctionRole"
+            ]
+          },
+          "ApiGatewayRestApi": {
+            "Type": "AWS::ApiGateway::RestApi",
+            "Properties": {
+              "Name": "dev-gallery-service",
+              "EndpointConfiguration": {
+                "Types": [
+                  "EDGE"
+                ]
+              },
+              "Policy": ""
+            }
+          },
+          "ApiGatewayResourceView": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "view",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceAlbum": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "album",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayResourceAlbumCreate": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Ref": "ApiGatewayResourceAlbum"
+              },
+              "PathPart": "create",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodViewOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceView"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodAlbumOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAlbum"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodAlbumCreateOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAlbumCreate"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodViewPost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "POST",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceView"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "GetFromAlbumLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "GetFromAlbumLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodAlbumPost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "POST",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAlbum"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "GetSubAlbumsLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "GetSubAlbumsLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayMethodAlbumCreatePost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "POST",
+              "RequestParameters": {},
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceAlbumCreate"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "ApiKeyRequired": false,
+              "AuthorizationType": "NONE",
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS_PROXY",
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":lambda:path/2015-03-31/functions/",
+                      {
+                        "Fn::GetAtt": [
+                          "CreateAlbumLambdaFunction",
+                          "Arn"
+                        ]
+                      },
+                      "/invocations"
+                    ]
+                  ]
+                }
+              },
+              "MethodResponses": []
+            },
+            "DependsOn": [
+              "CreateAlbumLambdaPermissionApiGateway"
+            ]
+          },
+          "ApiGatewayDeployment1687912377261": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "Properties": {
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "StageName": "dev"
+            },
+            "DependsOn": [
+              "ApiGatewayMethodViewOptions",
+              "ApiGatewayMethodAlbumOptions",
+              "ApiGatewayMethodAlbumCreateOptions",
+              "ApiGatewayMethodViewPost",
+              "ApiGatewayMethodAlbumPost",
+              "ApiGatewayMethodAlbumCreatePost",
+              "ApiGatewayMethodUploadPost"
+            ]
+          },
+          "GetFromAlbumLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "GetFromAlbumLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "GetSubAlbumsLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "GetSubAlbumsLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "CreateAlbumLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "CreateAlbumLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "ApiGatewayRestApi"
+                    },
+                    "/*/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "ApiGatewayResourceUpload": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+              "ParentId": {
+                "Fn::GetAtt": [
+                  "ApiGatewayRestApi",
+                  "RootResourceId"
+                ]
+              },
+              "PathPart": "upload",
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApiGatewayMethodUploadPost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "HttpMethod": "POST",
+              "RequestParameters": {},
+              "AuthorizationType": "NONE",
+              "ApiKeyRequired": false,
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceUpload"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "Integration": {
+                "IntegrationHttpMethod": "POST",
+                "Type": "AWS",
+                "Credentials": {
+                  "Fn::GetAtt": [
+                    "ApigatewayToStepFunctionsRole",
+                    "Arn"
+                  ]
+                },
+                "Uri": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":apigateway:",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      ":states:action/StartExecution"
+                    ]
+                  ]
+                },
+                "PassthroughBehavior": "NEVER",
+                "RequestTemplates": {
+                  "application/json": {
+                    "Fn::Sub": [
+                      "\n#set( $body = $util.escapeJavaScript($input.json('$')).replaceAll(\"\\\\'\", \"'\") )\n{\"input\": \"$body\", \"name\": \"$context.requestId\", \"stateMachineArn\":\"${StateMachineArn}\"}",
+                      {
+                        "StateMachineArn": {
+                          "Ref": "GstDashuploadStepFunction"
+                        }
+                      }
+                    ]
+                  },
+                  "application/x-www-form-urlencoded": {
+                    "Fn::Sub": [
+                      "\n#set( $body = $util.escapeJavaScript($input.json('$')).replaceAll(\"\\\\'\", \"'\") )\n{\"input\": \"$body\", \"name\": \"$context.requestId\", \"stateMachineArn\":\"${StateMachineArn}\"}",
+                      {
+                        "StateMachineArn": {
+                          "Ref": "GstDashuploadStepFunction"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": 200,
+                    "SelectionPattern": 200,
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'"
+                    },
+                    "ResponseTemplates": {}
+                  },
+                  {
+                    "StatusCode": 400,
+                    "SelectionPattern": 400,
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'"
+                    },
+                    "ResponseTemplates": {}
+                  }
+                ]
+              },
+              "MethodResponses": [
+                {
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": "'*'"
+                  },
+                  "ResponseModels": {},
+                  "StatusCode": 200
+                },
+                {
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": "'*'"
+                  },
+                  "ResponseModels": {},
+                  "StatusCode": 400
+                }
+              ]
+            }
+          },
+          "ApiGatewayMethodUploadOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+              "AuthorizationType": "NONE",
+              "HttpMethod": "OPTIONS",
+              "MethodResponses": [
+                {
+                  "StatusCode": "200",
+                  "ResponseParameters": {
+                    "method.response.header.Access-Control-Allow-Origin": true,
+                    "method.response.header.Access-Control-Allow-Headers": true,
+                    "method.response.header.Access-Control-Allow-Methods": true,
+                    "method.response.header.Access-Control-Allow-Credentials": true
+                  },
+                  "ResponseModels": {}
+                }
+              ],
+              "RequestParameters": {},
+              "Integration": {
+                "Type": "MOCK",
+                "RequestTemplates": {
+                  "application/json": "{statusCode:200}"
+                },
+                "ContentHandling": "CONVERT_TO_TEXT",
+                "IntegrationResponses": [
+                  {
+                    "StatusCode": "200",
+                    "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": "'*'",
+                      "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'",
+                      "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'",
+                      "method.response.header.Access-Control-Allow-Credentials": "'false'"
+                    },
+                    "ResponseTemplates": {
+                      "application/json": ""
+                    }
+                  }
+                ]
+              },
+              "ResourceId": {
+                "Ref": "ApiGatewayResourceUpload"
+              },
+              "RestApiId": {
+                "Ref": "ApiGatewayRestApi"
+              }
+            }
+          },
+          "ApigatewayToStepFunctionsRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": "apigateway.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": "apigatewaytostepfunctions",
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "states:StartExecution"
+                        ],
+                        "Resource": "*"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "galleryTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "gst-serverlessGallery",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "s3Name",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "s3Name",
+                  "KeyType": "HASH"
+                }
+              ],
+              "ProvisionedThroughput": {
+                "ReadCapacityUnits": 1,
+                "WriteCapacityUnits": 1
+              }
+            }
+          },
+          "galleryBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketName": "gst.milostim15.gallery"
+            }
+          },
+          "albumsTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "gst-serverlessAlbums",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "s3Link",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "s3Link",
+                  "KeyType": "HASH"
+                }
+              ],
+              "ProvisionedThroughput": {
+                "ReadCapacityUnits": 1,
+                "WriteCapacityUnits": 1
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "UploadS3LambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "UploadS3LambdaVersiontZoUHIeX9GTuzBWHdSpyKKJof5q6U9CZYocCwvU4"
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-UploadS3LambdaFunctionQualifiedArn"
+            }
+          },
+          "UploadS3LambdaFunctionUrl": {
+            "Description": "Lambda Function URL",
+            "Value": {
+              "Fn::GetAtt": [
+                "UploadS3LambdaFunctionUrl",
+                "FunctionUrl"
+              ]
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-UploadS3LambdaFunctionUrl"
+            }
+          },
+          "UploadDDBLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "UploadDDBLambdaVersion98oVvJqMTdfYZpZL9Sr27AlqEFpcOgQIbNAoBapK84"
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-UploadDDBLambdaFunctionQualifiedArn"
+            }
+          },
+          "UploadDDBLambdaFunctionUrl": {
+            "Description": "Lambda Function URL",
+            "Value": {
+              "Fn::GetAtt": [
+                "UploadDDBLambdaFunctionUrl",
+                "FunctionUrl"
+              ]
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-UploadDDBLambdaFunctionUrl"
+            }
+          },
+          "GetFromAlbumLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "GetFromAlbumLambdaVersionk3EUqIVg7bWqVfga8DJK2gEIIJsDLYrbKYz3ZNjtck"
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-GetFromAlbumLambdaFunctionQualifiedArn"
+            }
+          },
+          "GetFromAlbumLambdaFunctionUrl": {
+            "Description": "Lambda Function URL",
+            "Value": {
+              "Fn::GetAtt": [
+                "GetFromAlbumLambdaFunctionUrl",
+                "FunctionUrl"
+              ]
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-GetFromAlbumLambdaFunctionUrl"
+            }
+          },
+          "GetSubAlbumsLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "GetSubAlbumsLambdaVersionlbWlCtQhE0O7ug3X48FP06VaC5WQiQkO0srz3xzIkQ"
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-GetSubAlbumsLambdaFunctionQualifiedArn"
+            }
+          },
+          "GetSubAlbumsLambdaFunctionUrl": {
+            "Description": "Lambda Function URL",
+            "Value": {
+              "Fn::GetAtt": [
+                "GetSubAlbumsLambdaFunctionUrl",
+                "FunctionUrl"
+              ]
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-GetSubAlbumsLambdaFunctionUrl"
+            }
+          },
+          "CreateAlbumLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "CreateAlbumLambdaVersion5GT4gSvkgWh9AFbBcnuS814Oacww7jrO4bEmwglado"
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-CreateAlbumLambdaFunctionQualifiedArn"
+            }
+          },
+          "CreateAlbumLambdaFunctionUrl": {
+            "Description": "Lambda Function URL",
+            "Value": {
+              "Fn::GetAtt": [
+                "CreateAlbumLambdaFunctionUrl",
+                "FunctionUrl"
+              ]
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-CreateAlbumLambdaFunctionUrl"
+            }
+          },
+          "GstDashuploadStepFunctionArn": {
+            "Description": "Current StateMachine Arn",
+            "Value": {
+              "Ref": "GstDashuploadStepFunction"
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-GstDashuploadStepFunctionArn"
+            }
+          },
+          "ServiceEndpoint": {
+            "Description": "URL of the service endpoint",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "ApiGatewayRestApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  },
+                  "/dev"
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-gallery-service-dev-ServiceEndpoint"
+            }
+          }
+        }
+      },
+      "coreCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "ServerlessDeploymentBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketEncryption": {
+                "ServerSideEncryptionConfiguration": [
+                  {
+                    "ServerSideEncryptionByDefault": {
+                      "SSEAlgorithm": "AES256"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "ServerlessDeploymentBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "ServerlessDeploymentBucket"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Action": "s3:*",
+                    "Effect": "Deny",
+                    "Principal": "*",
+                    "Resource": [
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            },
+                            "/*"
+                          ]
+                        ]
+                      },
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:",
+                            {
+                              "Ref": "AWS::Partition"
+                            },
+                            ":s3:::",
+                            {
+                              "Ref": "ServerlessDeploymentBucket"
+                            }
+                          ]
+                        ]
+                      }
+                    ],
+                    "Condition": {
+                      "Bool": {
+                        "aws:SecureTransport": false
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": {
+              "Ref": "ServerlessDeploymentBucket"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "plugins": [
+      "serverless-step-functions"
+    ],
+    "pluginsData": {},
+    "functions": {
+      "uploadS3": {
+        "handler": "upload/uploadS3.upload",
+        "package": {
+          "include": [
+            "upload/**"
+          ],
+          "artifact": "C:\\kata\\faks\\6semestar\\CLOUD-COMPUTING\\PROJEKAT\\front\\services\\gallery-service\\.serverless\\uploadS3.zip"
+        },
+        "url": {
+          "cors": {
+            "allowedOrigins": [
+              "*"
+            ],
+            "allowedHeaders": [
+              "Authorization"
+            ],
+            "allowedMethods": [
+              "POST"
+            ]
+          }
+        },
+        "events": [],
+        "name": "gallery-service-dev-uploadS3",
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs14.x",
+        "vpc": {},
+        "versionLogicalId": "UploadS3LambdaVersiontZoUHIeX9GTuzBWHdSpyKKJof5q6U9CZYocCwvU4"
+      },
+      "uploadDDB": {
+        "handler": "upload/uploadDDB.upload",
+        "package": {
+          "include": [
+            "upload/**"
+          ],
+          "artifact": "C:\\kata\\faks\\6semestar\\CLOUD-COMPUTING\\PROJEKAT\\front\\services\\gallery-service\\.serverless\\uploadDDB.zip"
+        },
+        "url": {
+          "cors": {
+            "allowedOrigins": [
+              "*"
+            ],
+            "allowedHeaders": [
+              "Authorization"
+            ],
+            "allowedMethods": [
+              "POST"
+            ]
+          }
+        },
+        "events": [],
+        "name": "gallery-service-dev-uploadDDB",
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs14.x",
+        "vpc": {},
+        "versionLogicalId": "UploadDDBLambdaVersion98oVvJqMTdfYZpZL9Sr27AlqEFpcOgQIbNAoBapK84"
+      },
+      "getFromAlbum": {
+        "handler": "view/getFromAlbum.get",
+        "package": {
+          "include": [
+            "view/**"
+          ],
+          "artifact": "C:\\kata\\faks\\6semestar\\CLOUD-COMPUTING\\PROJEKAT\\front\\services\\gallery-service\\.serverless\\getFromAlbum.zip"
+        },
+        "url": {
+          "cors": {
+            "allowedOrigins": [
+              "*"
+            ],
+            "allowedHeaders": [
+              "Authorization"
+            ],
+            "allowedMethods": [
+              "POST"
+            ]
+          }
+        },
+        "events": [
+          {
+            "http": {
+              "path": "view",
+              "method": "post",
+              "cors": {
+                "origin": "*",
+                "methods": [
+                  "OPTIONS",
+                  "POST"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "X-Amz-Date",
+                  "Authorization",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent",
+                  "X-Amzn-Trace-Id"
+                ],
+                "allowCredentials": false
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "gallery-service-dev-getFromAlbum",
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs14.x",
+        "vpc": {},
+        "versionLogicalId": "GetFromAlbumLambdaVersionk3EUqIVg7bWqVfga8DJK2gEIIJsDLYrbKYz3ZNjtck"
+      },
+      "getSubAlbums": {
+        "handler": "view/getSubAlbums.get",
+        "package": {
+          "include": [
+            "view/**"
+          ],
+          "artifact": "C:\\kata\\faks\\6semestar\\CLOUD-COMPUTING\\PROJEKAT\\front\\services\\gallery-service\\.serverless\\getSubAlbums.zip"
+        },
+        "url": {
+          "cors": {
+            "allowedOrigins": [
+              "*"
+            ],
+            "allowedHeaders": [
+              "Authorization"
+            ],
+            "allowedMethods": [
+              "POST"
+            ]
+          }
+        },
+        "events": [
+          {
+            "http": {
+              "path": "album",
+              "method": "post",
+              "cors": {
+                "origin": "*",
+                "methods": [
+                  "OPTIONS",
+                  "POST"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "X-Amz-Date",
+                  "Authorization",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent",
+                  "X-Amzn-Trace-Id"
+                ],
+                "allowCredentials": false
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "gallery-service-dev-getSubAlbums",
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs14.x",
+        "vpc": {},
+        "versionLogicalId": "GetSubAlbumsLambdaVersionlbWlCtQhE0O7ug3X48FP06VaC5WQiQkO0srz3xzIkQ"
+      },
+      "createAlbum": {
+        "handler": "view/createAlbum.post",
+        "package": {
+          "include": [
+            "view/**"
+          ],
+          "artifact": "C:\\kata\\faks\\6semestar\\CLOUD-COMPUTING\\PROJEKAT\\front\\services\\gallery-service\\.serverless\\createAlbum.zip"
+        },
+        "url": {
+          "cors": {
+            "allowedOrigins": [
+              "*"
+            ],
+            "allowedHeaders": [
+              "Authorization"
+            ],
+            "allowedMethods": [
+              "POST"
+            ]
+          }
+        },
+        "events": [
+          {
+            "http": {
+              "path": "album/create",
+              "method": "post",
+              "cors": {
+                "origin": "*",
+                "methods": [
+                  "OPTIONS",
+                  "POST"
+                ],
+                "headers": [
+                  "Content-Type",
+                  "X-Amz-Date",
+                  "Authorization",
+                  "X-Api-Key",
+                  "X-Amz-Security-Token",
+                  "X-Amz-User-Agent",
+                  "X-Amzn-Trace-Id"
+                ],
+                "allowCredentials": false
+              },
+              "integration": "AWS_PROXY"
+            }
+          }
+        ],
+        "name": "gallery-service-dev-createAlbum",
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs14.x",
+        "vpc": {},
+        "versionLogicalId": "CreateAlbumLambdaVersion5GT4gSvkgWh9AFbBcnuS814Oacww7jrO4bEmwglado"
+      }
+    },
+    "resources": {
+      "Resources": {
+        "galleryTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "gst-serverlessGallery",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "s3Name",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "s3Name",
+                "KeyType": "HASH"
+              }
+            ],
+            "ProvisionedThroughput": {
+              "ReadCapacityUnits": 1,
+              "WriteCapacityUnits": 1
+            }
+          }
+        },
+        "galleryBucket": {
+          "Type": "AWS::S3::Bucket",
+          "Properties": {
+            "BucketName": "gst.milostim15.gallery"
+          }
+        },
+        "albumsTable": {
+          "Type": "AWS::DynamoDB::Table",
+          "Properties": {
+            "TableName": "gst-serverlessAlbums",
+            "AttributeDefinitions": [
+              {
+                "AttributeName": "s3Link",
+                "AttributeType": "S"
+              }
+            ],
+            "KeySchema": [
+              {
+                "AttributeName": "s3Link",
+                "KeyType": "HASH"
+              }
+            ],
+            "ProvisionedThroughput": {
+              "ReadCapacityUnits": 1,
+              "WriteCapacityUnits": 1
+            }
+          }
+        }
+      },
+      "Outputs": {}
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless.yml",
+    "initialServerlessConfig": {
+      "service": "gallery-service",
+      "frameworkVersion": "3",
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "package": {
+        "individually": true,
+        "patterns": [
+          "!**/**",
+          "utility/**"
+        ],
+        "artifactsS3KeyDirname": "serverless/gallery-service/dev/code-artifacts",
+        "artifactDirectoryName": "serverless/gallery-service/dev/1687912378864-2023-06-28T00:32:58.864Z"
+      },
+      "functions": {
+        "$ref": "$[\"service\"][\"functions\"]"
+      },
+      "resources": {
+        "$ref": "$[\"service\"][\"resources\"]"
+      },
+      "stepFunctions": {
+        "stateMachines": {
+          "uploadStepFunction": {
+            "name": "gst-uploadStepFunction",
+            "events": [
+              {
+                "http": {
+                  "path": "upload",
+                  "method": "post",
+                  "request": {
+                    "schema": {
+                      "$ref": "./models/uploadRequest.json"
+                    }
+                  },
+                  "cors": {
+                    "origins": [
+                      "*"
+                    ],
+                    "origin": "*",
+                    "methods": [
+                      "OPTIONS",
+                      "POST"
+                    ],
+                    "headers": [
+                      "Content-Type",
+                      "X-Amz-Date",
+                      "Authorization",
+                      "X-Api-Key",
+                      "X-Amz-Security-Token",
+                      "X-Amz-User-Agent"
+                    ],
+                    "allowCredentials": false
+                  }
+                }
+              }
+            ],
+            "definition": {
+              "StartAt": "UploadS3",
+              "States": {
+                "UploadS3": {
+                  "Type": "Task",
+                  "Resource": "arn:aws:lambda:eu-central-1:260436118818:function:gallery-service-dev-uploadS3",
+                  "ResultPath": "$.uploadS3Result",
+                  "Next": "UploadDDB"
+                },
+                "UploadDDB": {
+                  "Type": "Task",
+                  "Resource": "arn:aws:lambda:eu-central-1:260436118818:function:gallery-service-dev-uploadDDB",
+                  "InputPath": "$.uploadS3Result",
+                  "End": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      }
+    },
+    "layers": {},
+    "isDashboardMonitoringPreconfigured": false,
+    "stepFunctions": {
+      "stateMachines": {
+        "$ref": "$[\"service\"][\"initialServerlessConfig\"][\"stepFunctions\"][\"stateMachines\"]"
+      },
+      "activities": []
+    }
+  },
+  "package": {
+    "individually": true,
+    "artifactDirectoryName": "serverless/gallery-service/dev/1687912378864-2023-06-28T00:32:58.864Z",
+    "artifact": ""
+  }
+}

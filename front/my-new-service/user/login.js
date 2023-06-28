@@ -1,35 +1,41 @@
-module.exports.login= async (event, context) => {
-    console.log("recieved event", JSON.stringify(event, null, 2))
-    console.log("recieved context", JSON.stringify(context, null, 2))
-    var AWS = require("aws-sdk")
+const AWS = require("aws-sdk")
+const docClient = new AWS.DynamoDB.DocumentClient()
 
-    var ddb = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
+module.exports.handler = async (event) => {
 
-    let params = {
-      // Specify which items in the results are returned.
-      FilterExpression: "username = :u AND password = :p",
-      // Define the expression attribute value, which are substitutes for the values you want to compare.
-      ExpressionAttributeValues: {
-        ":u": {S: this.loginForm.value.username || ""},
-        ":p": {S: this.loginForm.value.password || ""}
+  const body = JSON.parse(event.body)
+
+  const params = {
+    TableName: 'serverlessUsers',
+    FilterExpression: 'username = :username and password = :password',
+    ExpressionAttributeValues: {
+      ':username': body.username,
+      ':password': body.password
+    },
+    ProjectionExpression: "username, namee, lastname, email"
+  };
+
+  try {
+    const data = await docClient.scan(params).promise()
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+        "Access-Control-Allow-Origin": "http://localhost:4200",
+        "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
       },
-      // Set the projection expression, which are the attributes that you want.
-      ProjectionExpression: "username, password, lastname, birthday",
-      TableName: "users",
-    };
-    ddb.scan(params, (err, data) => {
-      if (err) {
-        console.log("Error", err);
-      } else {
-        console.log("Success", data);
-        if (data.Items?.length == 0) {
-          alert("pogresni kredencijali")
-          return
-        }
-        if (data.Items?.length != 1) {
-          alert("ima vise naloga sa istim kredencijalima")
-          return
-        }
-      }
-    })
+      body: JSON.stringify({ body: data.Items }) 
+    }
+  } catch (err) {
+    return {
+      statusCode: 500,
+      headers: {
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+        "Access-Control-Allow-Origin": "http://localhost:4200",
+        "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
+      },
+      body: JSON.stringify({ error: err})
+    }
+  }
+
 }

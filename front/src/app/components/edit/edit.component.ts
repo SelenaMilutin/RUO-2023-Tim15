@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
 import { MatChipInputEvent } from '@angular/material/chips';
+import { ActivatedRoute } from '@angular/router';
+import { GalleryFile } from 'src/app/models/models';
 
 @Component({
   selector: 'app-edit',
@@ -17,9 +19,18 @@ export class EditComponent implements OnInit {
   separatorKeysCodes: number[] = [ENTER, COMMA];
   tags: string[] = []
 
-  constructor() { }
+  file: GalleryFile | null = null
+
+  constructor(private route: ActivatedRoute) { }
 
   ngOnInit(): void {
+    this.route.params.subscribe((params: any) => {
+      this.file = params
+      console.log(this.file)
+      this.fileName = this.file!.fileName
+      this.fileDescription = this.file!.description
+      this.tags = this.file!.tags
+    });
   }
 
   edit(): void {

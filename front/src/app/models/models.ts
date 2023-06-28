@@ -37,7 +37,7 @@ export interface UploadRequest {
         dateModified?: string
         description: string
         tags: string[]
-        owner: string
+        fileOwner: string
         hasAccess: string
         s3Name?: string
         albumName: string
@@ -53,7 +53,7 @@ export interface GalleryFile {
     dateModified: string
     description: string
     tags: string[]
-    owner: string
+    fileOwner: string
     hasAccess: string
     s3Name: string
     albumName: string
@@ -69,6 +69,11 @@ export interface ViewRequest {
         albumName: string,
         hasAccess: string
     }
+}
+
+export interface Album {
+    albumName: string
+    s3Link: string
 }
 
 // 

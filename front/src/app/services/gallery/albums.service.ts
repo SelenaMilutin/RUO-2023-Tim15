@@ -41,7 +41,26 @@ export class AlbumsService {
     return new Promise((resolve, reject) => {
       this.http.post(this.url + '/create', {
         s3Link: s3link,
-        newAlbumName: newAlbumName
+        newAlbumName: newAlbumName,
+        hasAccess: localStorage.getItem('username'),
+        fileOwner: localStorage.getItem('username')
+      }).subscribe(
+        (response: any) => {
+          resolve(response.body);
+        },
+        (error) => {
+          reject(error);
+        }
+      );
+    })
+  }
+
+  public getOtherAlbums(s3link: string): Promise<any> {
+
+    return new Promise((resolve, reject) => {
+      this.http.post(this.url + '/getOtherAlbums', {
+        s3Link: s3link,
+        fileOwner: localStorage.getItem('username')
       }).subscribe(
         (response: any) => {
           resolve(response.body);

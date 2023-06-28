@@ -37,6 +37,7 @@ export class GalleryViewComponent implements OnInit {
   ngOnInit(): void {
     this.loadFiles()
     this.loadSubAlbums()
+    this.loadOtherAlbums()
   }
 
   async loadFiles() {
@@ -122,9 +123,9 @@ export class GalleryViewComponent implements OnInit {
       }
       await this.albumsService.createAlbum(this.albumName, this.newAlbumName);
       this.statusMessage = 'Created album.'
-      this.buttons.push({label: this.newAlbumName+'/'+this.newAlbumName, s3Link: this.albumName+'/'+this.newAlbumName})
+      this.buttons.push({label: this.albumName+'/'+this.newAlbumName, s3Link: this.albumName+'/'+this.newAlbumName})
     } catch (error) {
-      this.statusMessage = 'Error moving file.'
+      this.statusMessage = 'Error creating album.'
     } 
   }
 
@@ -138,6 +139,23 @@ export class GalleryViewComponent implements OnInit {
   clickMove(file: GalleryFile) {
 
   }
+
+  async loadOtherAlbums() {
+    try {
+      let res = await this.albumsService.getOtherAlbums(this.albumName);
+      console.log(res)
+      if (res.length === 0)  {
+        this.albumOptions = []; 
+        return;
+      }
+      else this.albumOptions = res
+      this.selectedAlbum = this.albumOptions[0]
+    } catch (error) {
+      console.error('Error loading other albums: ', error)
+      this.statusMessage = 'Error loading other albums.'
+    } 
+  }
+
 }
 
 interface MyButton {

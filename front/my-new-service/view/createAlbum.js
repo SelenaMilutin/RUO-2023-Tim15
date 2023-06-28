@@ -9,6 +9,7 @@ module.exports.post = async (event, context) => {
     var body = JSON.parse(event.body)
     var s3Link = body.s3Link
     var newAlbumName = body.newAlbumName
+    var fileOwner = body.fileOwner
     if (newAlbumName.includes('/')) return createResponse(400, 'Invalid request.');
 
     var object = {
@@ -16,7 +17,9 @@ module.exports.post = async (event, context) => {
         Item: {
           "s3Link": s3Link+'/'+newAlbumName,
           "albumName": newAlbumName,
-          "subAlbums": []
+          "subAlbums": [],
+          "fileOwner": fileOwner,
+          "hasAccess": [fileOwner]
       }
     }
 

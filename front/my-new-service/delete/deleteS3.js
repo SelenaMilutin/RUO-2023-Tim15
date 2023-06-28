@@ -10,8 +10,8 @@ module.exports.delete = async (event, context) => {
         const exists = await checkIfFileExists(s3Bucket, objectName);
         if (!exists) return createResponse(400, "File with same name nost not exist in album.");
     }
-    catch(error) {
-        console.error("Error:", error);
+    catch(err) {
+        console.error("Error:", JSON.stringify(err));
         return createResponse(500, 'Error');
     };
         // Previous step has failed
@@ -25,8 +25,8 @@ module.exports.delete = async (event, context) => {
           };
           
           s3.deleteObject(params, function(err, data) {
-            if (err) console.log(err, err.stack); // an error occurred
-            else     console.log(data);           // successful response
+            if (err) return createResponse(500, 'Error'); // an error occurred
+            else     return createResponse(200, "Deleted S3");           // successful response
           });
 
 }

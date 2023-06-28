@@ -14,6 +14,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UploadComponent } from './components/upload/upload.component'
 import { GalleryViewComponent } from './components/gallery-view/gallery-view.component';
 import { UploadService } from './services/gallery/upload.service';
+import { EditComponent } from './components/edit/edit.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { UploadService } from './services/gallery/upload.service';
     RegisterComponent,
     ToolbarComponent,
     UploadComponent,
-    GalleryViewComponent
+    GalleryViewComponent,
+    EditComponent
   ],
   imports: [
     BrowserModule,

@@ -198,6 +198,31 @@ functions:
             - Authorization
           allowedMethods:
             - POST
+  deleteS3:
+      handler: delete/deleteS3.delete
+      package:
+        include: 'gallery/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+
+  deleteDDB:
+      handler: delete/deleteDDB.delete
+      package:
+        include: 'gallery/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
 
   getFromAlbum:
       handler: view/getFromAlbum.get
@@ -367,3 +392,30 @@ stepFunctions:
             InputPath: $.uploadS3Result
             # Is end state
             End: true
+
+    deleteStepFunction:
+      name: 'deleteStepFunction'
+      events:
+      - http:
+          path: /delete
+          method: POST
+          request:
+            schema:
+              $ref: ./models/uploadRequest.json
+          cors: true
+      definition:
+        StartAt: DeleteS3
+        States:
+          # State key
+          DeleteS3:
+            Type: Task
+            Resource: "arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${self:provider.stage}-deleteS3"
+            ResultPath: $.deleteS3Result
+            Next: DeleteDDB
+          DeleteDDB:
+            Type: Task
+            Resource: "arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${self:provider.stage}-deleteDDB"
+            InputPath: $.deleteS3Result
+            # Is end state
+            End: true
+

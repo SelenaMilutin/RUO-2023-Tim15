@@ -43,9 +43,6 @@
                     <div *ngFor="let tag of file.tags">
                         <p>tag</p>
                     </div>
-                </mat-card-content>
-                <mat-card-actions align="end">
-
                     <mat-form-field>
                         <mat-label>Select an option</mat-label>
                         <mat-select [(value)]="selectedAlbum">
@@ -54,6 +51,9 @@
                         </mat-select>
                       </mat-form-field>
                     <button mat-button (click)="clickMove(file)">Move</button>
+                </mat-card-content>
+                <mat-card-actions align="end">
+
                     <button mat-button (click)="clickDownload(file)" >Download</button>
                     <button mat-button (click)="edit(file)">Edit</button>
                   </mat-card-actions>

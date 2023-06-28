@@ -32,7 +32,8 @@ export class GalleryViewComponent implements OnInit {
   constructor(private readonly viewService: ViewService, 
     private readonly albumsService: AlbumsService,
     private readonly deleteService: DeleteService,
-    private router: Router) { }
+    private router: Router,
+    private http: HttpClient) { }
 
   ngOnInit(): void {
     this.loadFiles()
@@ -111,6 +112,21 @@ export class GalleryViewComponent implements OnInit {
   edit(file: GalleryFile) {
     console.log(file)
     this.router.navigate(['/edit', file]);
+  }
+
+  getAllAlbumsStartingWith(albumName: string): void {
+
+    console.log(albumName)
+
+    const params = {
+      sub: albumName,
+      type: "ALBUM"
+    }
+
+    this.http.post(keys.apiGateway + 'getAlbumsOrFiles', params).subscribe((response: any) => {
+      console.log(response)
+    });
+
   }
 
   async clickAddAlbum() {

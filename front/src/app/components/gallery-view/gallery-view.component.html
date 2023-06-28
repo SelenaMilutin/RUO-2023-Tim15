@@ -3,6 +3,7 @@
     <app-upload [currentAlbumName]="albumName"></app-upload>
     
     <h2>Album name: {{albumName}}</h2>
+    <button mat-button (click)="getAllAlbumsStartingWith(albumName)">Delete album</button>
     
     <p class="status">{{statusMessage}}</p>
     <h3>Sub albums</h3>

@@ -4,6 +4,8 @@ import {COMMA, ENTER} from '@angular/cdk/keycodes';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { ActivatedRoute } from '@angular/router';
 import { GalleryFile } from 'src/app/models/models';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { keys } from 'src/environments/keys';
 
 @Component({
   selector: 'app-edit',
@@ -19,9 +21,9 @@ export class EditComponent implements OnInit {
   separatorKeysCodes: number[] = [ENTER, COMMA];
   tags: string[] = []
 
-  file: GalleryFile | null = null
+  file: any
 
-  constructor(private route: ActivatedRoute) { }
+  constructor(private route: ActivatedRoute, private http: HttpClient) { }
 
   ngOnInit(): void {
     this.route.params.subscribe((params: any) => {
@@ -29,12 +31,18 @@ export class EditComponent implements OnInit {
       console.log(this.file)
       this.fileName = this.file!.fileName
       this.fileDescription = this.file!.description
-      this.tags = this.file!.tags
+      this.tags = params.tags.split(",")
+      this.file = {...this.file, tags: this.tags}
     });
   }
 
   edit(): void {
+    this.file = {...this.file, tags: this.tags, description: this.fileDescription}
+    console.log(this.file)
 
+    this.http.post(keys.apiGateway + 'edit', this.file).subscribe((response: any) => {
+      console.log(response)
+    });
   }
 
   removeTag(t: string): void {

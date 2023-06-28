@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Album, GalleryFile } from 'src/app/models/models';
 import { AlbumsService } from 'src/app/services/gallery/albums.service';
 import { ViewService } from 'src/app/services/gallery/view.service';
@@ -18,7 +18,10 @@ export class GalleryViewComponent implements OnInit {
 
   buttons: MyButton[] = [];
 
-  
+  @Output() albumValueChanged = new EventEmitter<string>();
+  onAlbumChange() {
+    this.albumValueChanged.emit(this.newAlbumName);
+  }
 
   constructor(private readonly viewService: ViewService, 
     private readonly albumsService: AlbumsService) { }
@@ -44,6 +47,7 @@ export class GalleryViewComponent implements OnInit {
   }
 
   async loadSubAlbums() {
+    this.buttons = []
     try {
       let res = await this.albumsService.getSubAlbums(this.albumName);
       console.log(res)
@@ -74,10 +78,18 @@ export class GalleryViewComponent implements OnInit {
       }
       await this.albumsService.createAlbum(this.albumName, this.newAlbumName);
       this.statusMessage = 'Created album.'
+      this.buttons.push({label: this.newAlbumName+'/'+this.newAlbumName, s3Link: this.albumName+'/'+this.newAlbumName})
     } catch (error) {
       console.error('Error creating album: ', error)
       this.statusMessage = 'Error creating album.'
     } 
+  }
+
+  clickSubAlbum(button: MyButton) {
+    this.albumName = button.s3Link
+    this.onAlbumChange()
+    this.loadFiles()
+    this.loadSubAlbums()
   }
 
 }

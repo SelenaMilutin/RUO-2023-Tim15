@@ -1,5 +1,6 @@
 <div class="page">
 
+    <app-upload [currentAlbumName]="albumName"></app-upload>
     
     <h2>Album name: {{albumName}}</h2>
     
@@ -7,7 +8,7 @@
     <h3>Sub albums</h3>
     <div class="button-grid">
         <mat-button-toggle-group>
-            <mat-button-toggle *ngFor="let button of buttons" [value]="button">
+            <mat-button-toggle *ngFor="let button of buttons" (click)="clickSubAlbum(button)">
                 <mat-icon>photo</mat-icon>
                 {{ button.label }}
             </mat-button-toggle>

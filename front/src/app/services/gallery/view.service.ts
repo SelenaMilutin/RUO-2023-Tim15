@@ -18,7 +18,7 @@ export class ViewService {
   }
 
   // private apiUrl = 'https://rjew6scp3nw5juocb3f3p537ke0ovvhp.lambda-url.eu-central-1.on.aws';
-  private apiUrl = 'https://kjxmclf8ll.execute-api.eu-central-1.amazonaws.com'
+  private apiUrl = 'https://9ln7bu8pi2.execute-api.eu-central-1.amazonaws.com'
   private stagePath = '/dev';
   private resourcePath = '/view';
   private url = this.apiUrl + this.stagePath + this.resourcePath;

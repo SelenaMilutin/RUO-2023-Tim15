@@ -34,13 +34,13 @@ export class UploadComponent implements OnInit {
 
 
   async upload() {
+    console.log("CURRENT ALBUM NAME FROM UPLOAD COMPONENT", this.currentAlbumName);
     if (this.validateFileName() === false) {
       this.uploadStatusMessage = 'Invalid file name. Cannot be blank. Characters "/" and "-" are not permitted and are replaced with "_".'
       this.transformFileName()
     }
     let owner = localStorage.getItem('username')
     if (owner == undefined) owner = "mico" // for testing
-    this.currentAlbumName = owner + '/root' // for testing  TODO
 
     let fileContent = ''
     try {
@@ -69,7 +69,11 @@ export class UploadComponent implements OnInit {
     }
     console.log(req)
     let res = await this.uploadService.uploadFile(req);
-    this.uploadStatusMessage = res.substring(1, res.length - 1);
+    try {
+      this.uploadStatusMessage = res.substring(1, res.length - 1);
+    } catch (error) {
+      this.uploadStatusMessage = "Internal error";
+    }
   }
 
   selectFile(event: any) {

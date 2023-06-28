@@ -3,10 +3,7 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 const createResponse = require('../utility/utils.js').createResponse;
 
 module.exports.upload = async (event, context) => {
-    console.log("recieved event", JSON.stringify(event, null, 2))
-    console.log("recieved context", JSON.stringify(context, null, 2))
-
-    // Previous step has failed
+        // Previous step has failed
     if (event.hasOwnProperty('statusCode')) return event;
 
     var file = event['body'];

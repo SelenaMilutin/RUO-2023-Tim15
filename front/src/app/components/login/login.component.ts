@@ -32,7 +32,7 @@ export class LoginComponent implements OnInit {
       password: this.loginForm.value.password
     }
 
-    this.http.post('https://prb40jtsz0.execute-api.eu-central-1.amazonaws.com/dev/login', params).subscribe((response: any) => {
+    this.http.post(keys.apiGateway + 'login', params).subscribe((response: any) => {
       
       let items: any = response!.body
 

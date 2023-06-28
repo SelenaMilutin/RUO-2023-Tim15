@@ -12,6 +12,7 @@ module.exports.get = async (event, context) => {
     // }
     // const { albumName, hasAccess } = event.queryStringParameters;
 
+    var body = JSON.parse(event.body)
     var albumName = body.albumName
     var hasAccess = body.hasAccess
 

@@ -1,4 +1,3 @@
-
 service: my-new-service
 frameworkVersion: "3"
 
@@ -21,11 +20,15 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
         - sns:Publish
+        - ses:SendEmail
+        - ses:SendRawEmail
       Resource:
         - "Fn::GetAtt": [users, Arn]
         - arn:aws:sns:eu-central-1:260436118818:DatabaseTopic
+        - arn:aws:ses:*
         - "Fn::GetAtt": [galleryTable, Arn]
         - "Fn::GetAtt": [albumsTable, Arn]
+        - "Fn::GetAtt": [usersByInvitation, Arn]
     - Effect: Allow
       Action:
         - s3:ListBucket
@@ -39,16 +42,12 @@ provider:
         - arn:aws:s3:::milostim15.gallery/*
     - Effect: Allow
       Action:
-        - states:StartExecution
-        - states:StopExecution
-        - states:DescribeExecution
-        - states:ListExecutions
-        - states:ListStateMachines
-        - states:DescribeStateMachine
-        - states:GetExecutionHistory
+        - lambda:InvokeFunction
       Resource:
-        - "arn:aws:states:*:*:stateMachine:*"
-        - "arn:aws:states:*:*:execution:*"
+        - "*"
+
+plugins:
+  - serverless-step-functions
 
 package:
  individually: True
@@ -57,57 +56,6 @@ package:
    - 'utility/**'
 
 functions:
-  testlambda:
-    handler: user/test.test
-    package:
-      include: 'user/**'
-    url:
-      cors:
-        allowedOrigins:
-          - '*'
-        allowedHeaders:
-          - Authorization
-        allowedMethods:
-          - POST
-
-  authorizerFunction:
-    handler: user/authorizer.handler
-    package:
-      include: 'user/**'
-
-  login:
-    handler: user/login.handler
-    package:
-      include: 'user/**'
-    events:
-      - http:
-          path: login
-          method: post
-          cors: true
-
-  download:
-    handler: user/download.handler
-    package:
-      include: 'user/**'
-    events:
-      - http:
-          path: download
-          method: post
-          cors: true
-
-  myFunction:
-    handler: user/myFunction.handler
-    package:
-      include: 'user/**'
-    events:
-      - http:
-          path: my-endpoint
-          method: post
-          cors: true
-          authorizer:
-            name: authorizerFunction
-            identitySource: method.request.header.Authorization
-            type: token
 
   registerUser:
       handler: user/register.registerUser
@@ -121,11 +69,114 @@ functions:
             - Authorization
           allowedMethods:
             - POST
+      events:
+        # REST API endpoint of API Gateway
+        - http:
+            # Path for this endpoint
+            path: user
+            # HTTP method for this endpoint
+            method: post
+            # Enable CORS. Don't forget to return the right header in your response
+            cors: true
+
+     
+      
+      # events:
+      # - sns:
+      #     arn: !Ref SuperTopic
+      #     topicName: DatabaseTopic
+  sendInvitation:
+    handler: familyInvitation/sendInvitation.sendInvitation
+    package:
+      include: 'familyInvitation/**'
+    url:
+      cors:
+        allowedOrigins:
+          - '*'
+        allowedHeaders:
+          - Authorization
+        allowedMethods:
+          - PUT
+    events:
+        # REST API endpoint of API Gateway
+        - http:
+            # Path for this endpoint
+            path: famillyInvitation
+            # HTTP method for this endpoint
+            method: put
+            # Enable CORS. Don't forget to return the right header in your response
+            cors: true
+
+  userFillsData:
+    handler: familyInvitation/userFillsData.userFillsData
+    package:
+      include: 'familyInvitation/**'
+    url:
+      cors:
+        allowedOrigins:
+          - '*'
+        allowedHeaders:
+          - Authorization
+        allowedMethods:
+          - POST
+    events:
+        # REST API endpoint of API Gateway
+        - http:
+            # Path for this endpoint
+            path: famillyInvitation
+            # HTTP method for this endpoint
+            method: post
+            # Enable CORS. Don't forget to return the right header in your response
+            cors: true
+  
+  createUser:
+    handler: familyInvitation/createUser.createUser
+    package:
+      include: 'familyInvitation/**'
+    url:
+      cors:
+        allowedOrigins:
+          - '*'
+        allowedHeaders:
+          - Authorization
+        allowedMethods:
+          - PUT
+    events:
+        # REST API endpoint of API Gateway
+        - http:
+            # Path for this endpoint
+            path: user
+            # HTTP method for this endpoint
+            method: put
+            # Enable CORS. Don't forget to return the right header in your response
+            cors: true
+  
+  deleteUser:
+    handler: familyInvitation/deleteUser.delete
+    package:
+      include: 'familyInvitation/**'
+    url:
+      cors:
+        allowedOrigins:
+          - '*'
+        allowedHeaders:
+          - Authorization
+        allowedMethods:
+          - PUT
+  login:
+    handler: user/login.handler
+    package:
+      include: 'user/**'
+    events:
+      - http:
+          path: login
+          method: post
+          cors: true
 
   uploadS3:
-      handler: upload/uploadS3.upload
+      handler: gallery/uploadS3.upload
       package:
-        include: 'upload/**'
+        include: 'gallery/**'
       url:
         cors:
           allowedOrigins:
@@ -136,9 +187,9 @@ functions:
             - POST
 
   uploadDDB:
-      handler: upload/uploadDDB.upload
+      handler: gallery/uploadDDB.upload
       package:
-        include: 'upload/**'
+        include: 'gallery/**'
       url:
         cors:
           allowedOrigins:
@@ -147,13 +198,8 @@ functions:
             - Authorization
           allowedMethods:
             - POST
-      
-      # events:
-      # - sns:
-      #     arn: !Ref SuperTopic
-      #     topicName: DatabaseTopic
 
-getFromAlbum:
+  getFromAlbum:
       handler: view/getFromAlbum.get
       package:
         include: 'view/**'
@@ -206,19 +252,9 @@ getFromAlbum:
           path: album/create
           method: post
           cors: true
-  
 
 resources:
   Resources:
-    Unauthorized:
-      Type: AWS::ApiGateway::GatewayResponse
-      Properties:
-        ResponseParameters:
-          "gatewayresponse.header.Access-Control-Allow-Origin": "'*'"
-          "gatewayresponse.header.Access-Control-Allow-Headers": "'*'"
-        ResponseType: "DEFAULT_4XX"
-        RestApiId:
-          Ref: "ApiGatewayRestApi"
 
     users:
       Type: AWS::DynamoDB::Table
@@ -229,6 +265,20 @@ resources:
             AttributeType: S
         KeySchema:
           - AttributeName: username
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    usersByInvitation:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: serverlessUsersByInvitation
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
@@ -246,16 +296,27 @@ resources:
         Protocol: email
         TopicArn: {"Ref": "SuperTopic"}
 
+    SNSSubscription2:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: selena.milutin@gmail.com
+        Protocol: email
+        TopicArn: {"Ref": "SuperTopic"}
+
     galleryTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: serverlessGallery
         AttributeDefinitions:
-          - AttributeName: s3Name
+          - AttributeName: hasAccess
+            AttributeType: S
+          - AttributeName: albumName
             AttributeType: S
         KeySchema:
-          - AttributeName: s3Name
+          - AttributeName: hasAccess
             KeyType: HASH
+          - AttributeName: albumName
+            KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
@@ -306,7 +367,3 @@ stepFunctions:
             InputPath: $.uploadS3Result
             # Is end state
             End: true
-
-plugins:
-  - serverless-step-functions
-

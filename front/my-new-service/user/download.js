@@ -1,22 +1,27 @@
-const AWS = require("aws-sdk")
-const docClient = new AWS.DynamoDB.DocumentClient()
+const s3 = new AWS.S3();
 
-module.exports.handler = async (event) => {
+module.exports.handler = async (event, context) => {
 
   const body = JSON.parse(event.body)
 
   const params = {
-    TableName: 'serverlessUsers',
-    FilterExpression: 'username = :username and password = :password',
-    ExpressionAttributeValues: {
-      ':username': body.username,
-      ':password': body.password
-    },
-    ProjectionExpression: "username, namee, lastname, email"
+    Bucket: 'milostim15.gallery',
+    Key: body.fileName
   };
 
+  const tempFilePath = body.fileName;
+
   try {
-    const data = await docClient.scan(params).promise()
+    const stream = s3.getObject(params).createReadStream();
+
+    const writeStream = fs.createWriteStream(tempFilePath);
+    stream.pipe(writeStream);
+
+    await new Promise((resolve, reject) => {
+      writeStream.on('finish', resolve);
+      writeStream.on('error', reject);
+    });
+
     return {
       statusCode: 200,
       headers: {
@@ -24,9 +29,10 @@ module.exports.handler = async (event) => {
         "Access-Control-Allow-Origin": "http://localhost:4200",
         "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
       },
-      body: JSON.stringify({ body: data.Items }) 
+      body: JSON.stringify({ body: "Success" }) 
     }
-  } catch (err) {
+  } catch (error) {
+    console.error('Error downloading file:', error);
     return {
       statusCode: 500,
       headers: {
@@ -37,5 +43,4 @@ module.exports.handler = async (event) => {
       body: JSON.stringify({ error: err})
     }
   }
-
-}
+};

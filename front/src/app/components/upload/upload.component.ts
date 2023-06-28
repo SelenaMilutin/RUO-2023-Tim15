@@ -39,8 +39,9 @@ export class UploadComponent implements OnInit {
       this.uploadStatusMessage = 'Invalid file name. Cannot be blank. Characters "/" and "-" are not permitted and are replaced with "_".'
       this.transformFileName()
     }
-    let owner = localStorage.getItem('username')
-    if (owner == undefined) owner = "mico" // for testing
+    let owner = JSON.parse(localStorage.getItem('user')!).username
+    console.log("owner" + owner)
+    // if (owner == undefined) owner = "mico" // for testing
 
     let fileContent = ''
     try {

@@ -45,15 +45,17 @@ export class GalleryViewComponent implements OnInit {
 
   async loadFiles() {
     try {
-      const params = {
-        sub: this.albumName,
-        type: "FILE"
-      }
+      // const params = {
+      //   sub: this.albumName,
+      //   type: "FILE"
+      // }
   
-      let files: any = await this.http.post(keys.apiGateway + 'getAlbumsOrFiles', params).toPromise()
+      // let files: any = await this.http.post(keys.apiGateway + 'getAlbumsOrFiles', params).toPromise()
 
-      this.files = files
-      console.log(this.files)
+      // this.files = files
+      // console.log(this.files)
+      this.files = await this.viewService.loadFiles(this.albumName);
+      console.log("albumname " + this.albumName)
       this.files.sort((a, b) => {
         const dateA = new Date(a.dateCreated);
         const dateB = new Date(b.dateCreated);

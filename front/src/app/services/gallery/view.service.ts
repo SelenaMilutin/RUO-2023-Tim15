@@ -30,7 +30,7 @@ export class ViewService {
     return new Promise((resolve, reject) => {
       this.http.post(this.url, {
         albumName: albumName,
-        hasAccess: localStorage.getItem('username') // TODO
+        hasAccess: "milos" // TODO
       }).subscribe(
         (response: any) => {
           resolve(response.body);

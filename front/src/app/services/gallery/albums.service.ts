@@ -37,13 +37,12 @@ export class AlbumsService {
   }
 
   public createAlbum(s3link: string, newAlbumName: string): Promise<Album[]> {
-
     return new Promise((resolve, reject) => {
       this.http.post(this.url + '/create', {
         s3Link: s3link,
         newAlbumName: newAlbumName,
-        hasAccess: localStorage.getItem('username'),
-        fileOwner: localStorage.getItem('username')
+        hasAccess: JSON.parse(localStorage.getItem('user')!).username,
+        fileOwner: JSON.parse(localStorage.getItem('user')!).username
       }).subscribe(
         (response: any) => {
           resolve(response.body);
@@ -56,11 +55,12 @@ export class AlbumsService {
   }
 
   public getOtherAlbums(s3link: string): Promise<any> {
-
+    
+    console.log("asd" + JSON.parse(localStorage.getItem('user')!).username)
     return new Promise((resolve, reject) => {
       this.http.post(this.url + '/getOtherAlbums', {
         s3Link: s3link,
-        fileOwner: localStorage.getItem('username')
+        fileOwner: JSON.parse(localStorage.getItem('user')!).username
       }).subscribe(
         (response: any) => {
           resolve(response.body);

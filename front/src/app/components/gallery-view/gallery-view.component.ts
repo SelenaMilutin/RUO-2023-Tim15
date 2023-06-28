@@ -120,7 +120,7 @@ export class GalleryViewComponent implements OnInit {
 
     const params = {
       sub: albumName,
-      type: "ALBUM"
+      type: "FILE"
     }
 
     this.http.post(keys.apiGateway + 'getAlbumsOrFiles', params).subscribe((response: any) => {

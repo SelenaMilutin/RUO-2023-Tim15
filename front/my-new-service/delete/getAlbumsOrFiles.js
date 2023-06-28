@@ -9,15 +9,21 @@ module.exports.getAlbumsOrFiles = async (event, context) => {
   const type = body.type
   let table = ""
   let attr = ""
+  
+  console.log(sub)
+  console.log(type)
 
   if (type == "ALBUM") {
     table = "serverlessAlbums"
-    attr = "S3Link"
+    attr = "s3Link"
   }
   else if (type == "FILE") {
     table = "serverlessGallery"
-    attr = "S3Name"
+    attr = "s3Name"
   }
+  
+  console.log(table)
+  console.log(attr)
 
   try {
     
@@ -29,7 +35,7 @@ module.exports.getAlbumsOrFiles = async (event, context) => {
       },
     };
 
-    const result = await dynamodb.scan(params).promise();
+    const result = await docClient.scan(params).promise();
     
     return createResponse(200, result.Items);     
   } catch (error) {

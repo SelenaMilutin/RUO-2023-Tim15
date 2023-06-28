@@ -1,6 +1,7 @@
 const AWS = require("aws-sdk");
 const docClient = new AWS.DynamoDB.DocumentClient();
 const createResponse = require('../utility/utils.js').createResponse;
+const sendMail = require('../utility/utils.js').sendMail;
 
 module.exports.edit = async (event, context) => {
 
@@ -26,6 +27,8 @@ module.exports.edit = async (event, context) => {
   };
 
   try {
+    var data = "You have succesfully updated " + file.fileName + " in album " + file.albumName
+    sendMail("Upload file", data)
     await docClient.put(object).promise();
     return createResponse(200, 'Successfully created item!');
   } catch (error) {

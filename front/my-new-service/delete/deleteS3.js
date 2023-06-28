@@ -5,6 +5,8 @@ const createResponse = require('../utility/utils.js').createResponse;
 
 module.exports.delete = async (event, context) => {
     
+        const body = event.body
+        const objectName = body.albumName + '/' + body.fileName;
         // Previous step has failed
         var params = {
             Bucket: s3Bucket,

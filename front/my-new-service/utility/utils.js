@@ -39,4 +39,4 @@ async function sendMail(subject, data) {
 module.exports = {
     createResponse,
     sendMail
-};
+}

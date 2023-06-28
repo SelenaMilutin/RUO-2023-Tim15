@@ -11,23 +11,21 @@ import { ViewService } from 'src/app/services/gallery/view.service';
 export class GalleryViewComponent implements OnInit {
 
   files: GalleryFile[] = []
-  subAlbums: Album[] = []
+  subAlbums = []
   albumName: string = 'mico/root'  //TODO
   statusMessage: string = ''
   newAlbumName: string = 'New album name'
 
-  buttons = [
-    { label: 'Button 1', s3link: ''},
-    { label: 'Button 2', s3link: 'settings' },
-    { label: 'Button 3', s3link: 'account_circle' },
-  ];
+  buttons: MyButton[] = [];
+
+  
 
   constructor(private readonly viewService: ViewService, 
     private readonly albumsService: AlbumsService) { }
 
   ngOnInit(): void {
     this.loadFiles()
-    //this.loadSubAlbums()
+    this.loadSubAlbums()
   }
 
   async loadFiles() {
@@ -47,10 +45,11 @@ export class GalleryViewComponent implements OnInit {
 
   async loadSubAlbums() {
     try {
-      this.subAlbums = await this.albumsService.getSubAlbums(this.albumName);
-      console.log(this.subAlbums)
+      let res = await this.albumsService.getSubAlbums(this.albumName);
+      console.log(res)
+      this.subAlbums = res.subAlbums
       for (let album of this.subAlbums) {
-        this.buttons.push({label: album.albumName, s3link: album.s3Link})
+        this.buttons.push({label: album, s3Link: album})
       }
     } catch (error) {
       console.error('Error loading sub albums: ', error)
@@ -81,4 +80,9 @@ export class GalleryViewComponent implements OnInit {
     } 
   }
 
+}
+
+interface MyButton {
+    label: string,
+    s3Link: string
 }

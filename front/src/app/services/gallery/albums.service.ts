@@ -21,7 +21,7 @@ export class AlbumsService {
   private url = this.apiUrl + this.stagePath + this.resourcePath;
 
 
-  public getSubAlbums(s3link: string): Promise<Album[]> {
+  public getSubAlbums(s3link: string): Promise<any> {
 
     return new Promise((resolve, reject) => {
       this.http.post(this.url, {

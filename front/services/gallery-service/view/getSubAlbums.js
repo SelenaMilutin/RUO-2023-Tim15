@@ -6,24 +6,20 @@ module.exports.get = async (event, context) => {
     console.log("recieved event", JSON.stringify(event, null, 2))
     console.log("recieved context", JSON.stringify(context, null, 2))
 
-    // const queryParams = event.queryStringParameters;
-    // if (!queryParams) {
-    //     return createResponse(400, 'Invalid request.')
-    // }
-    // const { albumName, hasAccess } = event.queryStringParameters;
-
-    var s3link = body.s3link
+    var body = JSON.parse(event.body)
+    var s3Link = event.body.s3Link
+    var s3Link = body.s3Link
 
     var params = {
         TableName: 'gst-serverlessAlbums',
         KeyConditionExpression: '#hashKey = :hashKeyValue',
         ExpressionAttributeNames: {
-          '#hashKey': 's3link',
+          '#hashKey': 's3Link',
         },
         ExpressionAttributeValues: {
-          ':hashKeyValue': s3link,
+          ':hashKeyValue': s3Link,
         },
-        ProjectionExpression: 'albumName, s3link, subAlbums'
+        ProjectionExpression: 'albumName, s3Link, subAlbums'
     }
 
     try {

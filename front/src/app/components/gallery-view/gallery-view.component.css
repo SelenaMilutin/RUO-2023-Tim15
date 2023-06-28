@@ -78,10 +78,15 @@ a {
     margin-right: 1vh;
 }
 
-.button-grid {
+.button-grid, mat-button-toggle-group {
     display: flex;
     width: 100%;
-    padding-left: 16px;
+    flex-wrap: wrap;
+  }
+
+.mat-button-toggle {
+    flex-grow: 1;
+    width: auto;
   }
 
 .status {

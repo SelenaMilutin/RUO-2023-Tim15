@@ -295,7 +295,23 @@ functions:
           path: album/getOtherAlbums
           method: post
           cors: true
-
+  editDDB:
+      handler: upload/editDDB.edit
+      package:
+        include: 'upload/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: edit
+          method: post
+          cors: true
 resources:
   Resources:
 

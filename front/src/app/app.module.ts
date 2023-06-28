@@ -17,6 +17,7 @@ import { RegisterByInvitationComponent } from './components/register-by-invitati
 import { VerifyRegistrationComponent } from './components/verify-registration/verify-registration.component';
 import { GalleryViewComponent } from './components/gallery-view/gallery-view.component';
 import { UploadService } from './services/gallery/upload.service';
+import { EditComponent } from './components/edit/edit.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { UploadService } from './services/gallery/upload.service';
     InviteFamilyComponent,
     RegisterByInvitationComponent,
     VerifyRegistrationComponent,
-    GalleryViewComponent
+    GalleryViewComponent,
+    EditComponent
   ],
   imports: [
     BrowserModule,

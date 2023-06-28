@@ -7,6 +7,7 @@ import { UploadComponent } from './components/upload/upload.component';
 import { InviteFamilyComponent } from './components/invite-family/invite-family.component';
 import { RegisterByInvitationComponent } from './components/register-by-invitation/register-by-invitation.component';
 import { VerifyRegistrationComponent } from './components/verify-registration/verify-registration.component';
+import { EditComponent } from './components/edit/edit.component';
 
 const routes: Routes = [
   {path: 'upload', component: UploadComponent},
@@ -15,7 +16,8 @@ const routes: Routes = [
   {path: 'register', component: RegisterComponent},
   {path: 'inviteFamily', component: InviteFamilyComponent},
   {path: "registerByInvitation", component: RegisterByInvitationComponent},
-  {path: "verifyRegistation", component: VerifyRegistrationComponent}
+  {path: "verifyRegistation", component: VerifyRegistrationComponent},
+  {path: "edit", component: EditComponent}
 ];
 
 @NgModule({

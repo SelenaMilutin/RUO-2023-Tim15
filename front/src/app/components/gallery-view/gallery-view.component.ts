@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Album, GalleryFile, UploadRequest } from 'src/app/models/models';
+import { Router } from '@angular/router';
 import { AlbumsService } from 'src/app/services/gallery/albums.service';
 import { DeleteService } from 'src/app/services/gallery/delete.service';
 import { ViewService } from 'src/app/services/gallery/view.service';
@@ -30,7 +31,8 @@ export class GalleryViewComponent implements OnInit {
 
   constructor(private readonly viewService: ViewService, 
     private readonly albumsService: AlbumsService,
-    private readonly deleteService: DeleteService) { }
+    private readonly deleteService: DeleteService,
+    private router: Router) { }
 
   ngOnInit(): void {
     this.loadFiles()
@@ -104,6 +106,11 @@ export class GalleryViewComponent implements OnInit {
 
   clickDownload(file: GalleryFile) {
 
+  }
+
+  edit(file: GalleryFile) {
+    console.log(file)
+    this.router.navigate(['/edit', file]);
   }
 
   async clickAddAlbum() {

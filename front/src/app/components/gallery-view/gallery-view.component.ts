@@ -114,17 +114,28 @@ export class GalleryViewComponent implements OnInit {
     this.router.navigate(['/edit', file]);
   }
 
-  getAllAlbumsStartingWith(albumName: string): void {
+  async getAllAlbumsStartingWith(albumName: string): Promise<void> {
 
     console.log(albumName)
 
-    const params = {
+    const params1 = {
+      sub: albumName,
+      type: "ALBUM"
+    }
+
+    const params2 = {
       sub: albumName,
       type: "FILE"
     }
 
-    this.http.post(keys.apiGateway + 'getAlbumsOrFiles', params).subscribe((response: any) => {
-      console.log(response)
+    let albums: any = await this.http.post(keys.apiGateway + 'getAlbumsOrFiles', params1).toPromise()
+    let files: any = await this.http.post(keys.apiGateway + 'getAlbumsOrFiles', params2).toPromise()
+
+    console.log(albums)
+    console.log(files)
+
+    files.forEach(async (file: any) => {
+      await this.clickDelete(file)
     });
 
   }

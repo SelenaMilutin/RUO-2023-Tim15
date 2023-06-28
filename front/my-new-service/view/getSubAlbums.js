@@ -24,8 +24,9 @@ module.exports.get = async (event, context) => {
 
     try {
         const data = await docClient.query(params).promise();
-        return createResponse(200, {body: data.Items[0]});
-    } catch (error) {
+        if (data.Items.length > 0) return createResponse(200, {body: data.Items[0]});
+        else return createResponse(200, {body: []});    } 
+    catch (error) {
         console.error('Error:', error);
         return createResponse(500, 'Error');
     }

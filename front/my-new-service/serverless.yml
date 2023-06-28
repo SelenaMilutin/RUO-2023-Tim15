@@ -174,9 +174,9 @@ functions:
           cors: true
 
   uploadS3:
-      handler: gallery/uploadS3.upload
+      handler: upload/uploadS3.upload
       package:
-        include: 'gallery/**'
+        include: 'upload/**'
       url:
         cors:
           allowedOrigins:
@@ -187,9 +187,9 @@ functions:
             - POST
 
   uploadDDB:
-      handler: gallery/uploadDDB.upload
+      handler: upload/uploadDDB.upload
       package:
-        include: 'gallery/**'
+        include: 'upload/**'
       url:
         cors:
           allowedOrigins:
@@ -308,15 +308,11 @@ resources:
       Properties:
         TableName: serverlessGallery
         AttributeDefinitions:
-          - AttributeName: hasAccess
-            AttributeType: S
-          - AttributeName: albumName
+          - AttributeName: s3Name
             AttributeType: S
         KeySchema:
-          - AttributeName: hasAccess
+          - AttributeName: s3Name
             KeyType: HASH
-          - AttributeName: albumName
-            KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1

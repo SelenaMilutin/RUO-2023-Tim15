@@ -47,8 +47,8 @@ export class LoginComponent implements OnInit {
       }
 
       let user: any = items[0]
-      localStorage.setItem("username", user.username)
-      console.log(localStorage.getItem("username"))
+      localStorage.setItem("user", JSON.stringify(user))
+      console.log(localStorage.getItem("user"))
 
     });
   }

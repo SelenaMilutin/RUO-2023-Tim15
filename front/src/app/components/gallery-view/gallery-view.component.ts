@@ -17,7 +17,7 @@ export class GalleryViewComponent implements OnInit {
 
   files: GalleryFile[] = []
   subAlbums: string[] = []
-  albumName: string = localStorage.getItem('username') + '/root'  //TODO
+  albumName: string = JSON.parse(localStorage.getItem('user')!).username + '/root'  //TODO
   statusMessage: string = ''
   newAlbumName: string = 'New album name'
 

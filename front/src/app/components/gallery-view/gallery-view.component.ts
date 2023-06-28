@@ -6,6 +6,7 @@ import { AlbumsService } from 'src/app/services/gallery/albums.service';
 import { DeleteService } from 'src/app/services/gallery/delete.service';
 import { ViewService } from 'src/app/services/gallery/view.service';
 import { keys } from 'src/environments/keys';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-gallery-view',
@@ -15,7 +16,7 @@ import { keys } from 'src/environments/keys';
 export class GalleryViewComponent implements OnInit {
 
   files: GalleryFile[] = []
-  subAlbums = []
+  subAlbums: string[] = []
   albumName: string = localStorage.getItem('username') + '/root'  //TODO
   statusMessage: string = ''
   newAlbumName: string = 'New album name'
@@ -57,22 +58,49 @@ export class GalleryViewComponent implements OnInit {
   }
 
   async loadSubAlbums() {
+    // this.buttons = []
+    // try {
+    //   let res = await this.albumsService.getSubAlbums(this.albumName);
+    //   console.log(res)
+    //   if (res.length === 0)  {
+    //     this.subAlbums = []; 
+    //     return;
+    //   }
+    //   else this.subAlbums = res.subAlbums
+    //   for (let album of this.subAlbums) {
+    //     this.buttons.push({label: album, s3Link: album})
+    //   }
+    // } catch (error) {
+    //   console.error('Error loading sub albums: ', error)
+    //   this.statusMessage = 'Error loading sub albums.'
+    // } 
+
+    console.log(this.albumName)
+    const params = {
+      sub: this.albumName,
+      type: "ALBUM"
+    }
+
+    let albums: any = await this.http.post(keys.apiGateway + 'getAlbumsOrFiles', params).toPromise()
+    let nextIdx: number = this.albumName.split("\/").length
+    console.log(nextIdx)
+
+    this.subAlbums = []
+
+    albums.forEach((album: any) => {
+      let fullName: string = album.s3Link
+      if (fullName == this.albumName)
+        return
+
+      let next: string = this.albumName + "/" + fullName.split("\/")[nextIdx]
+      console.log(next)
+      this.subAlbums.push(next)
+    });
+
     this.buttons = []
-    try {
-      let res = await this.albumsService.getSubAlbums(this.albumName);
-      console.log(res)
-      if (res.length === 0)  {
-        this.subAlbums = []; 
-        return;
-      }
-      else this.subAlbums = res.subAlbums
-      for (let album of this.subAlbums) {
-        this.buttons.push({label: album, s3Link: album})
-      }
-    } catch (error) {
-      console.error('Error loading sub albums: ', error)
-      this.statusMessage = 'Error loading sub albums.'
-    } 
+    for (let album of this.subAlbums)
+      this.buttons.push({label: album, s3Link: album})
+
   }
 
   async clickDelete(file: GalleryFile) {
@@ -115,7 +143,12 @@ export class GalleryViewComponent implements OnInit {
     this.router.navigate(['/edit', file]);
   }
 
-  async getAllAlbumsStartingWith(albumName: string): Promise<void> {
+  async deleteAlbum(albumName: string): Promise<void> {
+
+    if (albumName.endsWith("root")) {
+      alert("ne moze root da se brise")
+      return
+    }
 
     console.log(albumName)
 
@@ -135,17 +168,17 @@ export class GalleryViewComponent implements OnInit {
     console.log(albums)
     console.log(files)
 
-    files.forEach(async (file: any) => {
-      await this.clickDelete(file)
-    });
+    // files.forEach(async (file: any) => {
+    //   await this.clickDelete(file)
+    // });
 
-    albums.forEach(async (album: any) => {
-      const params = {
-        s3Link: album.s3Link
-      }
-      await this.http.post(keys.apiGateway + 'deleteAlbum', params).toPromise()
-      console.log("deleted album")
-    })
+    // albums.forEach(async (album: any) => {
+    //   const params = {
+    //     s3Link: album.s3Link
+    //   }
+    //   await this.http.post(keys.apiGateway + 'deleteAlbum', params).toPromise()
+    //   console.log("deleted album")
+    // })
 
   }
 

@@ -18,8 +18,8 @@ module.exports.delete = async (event, context) => {
           }
           
               try {
-                var data = "You have succesfully deleted " + file.fileName + " in album " + file.albumName
-                sendMail("Upload file", data)
+                var msg = "You have succesfully deleted " + user.fileName + " in album " + user.albumName
+                sendMail("Upload file", msg)
               const data = await docClient.delete(params).promise()
               return {
             statusCode: 200,

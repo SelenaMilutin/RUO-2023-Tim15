@@ -29,8 +29,8 @@ module.exports.upload = async (event, context) => {
   };
 
   try {
-    var data = "You have succesfully created " + file.fileName + " in album " + file.albumName
-    sendMail("Upload file", data)
+    var msg = "You have succesfully created " + file.fileName + " in album " + file.albumName
+    sendMail("Upload file", msg)
     await docClient.put(object).promise();
     return createResponse(200, 'Successfully created item!');
   } catch (error) {

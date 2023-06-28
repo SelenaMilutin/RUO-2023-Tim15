@@ -6,13 +6,24 @@ var ses = new AWS.SES({region: 'eu-central-1'});
 module.exports.registerUser= async (event, context) => {
     console.log("recieved event", JSON.stringify(event, null, 2))
     console.log("recieved context", JSON.stringify(context, null, 2))
-    sendMail("subjekat", "tekst mejla")
+    
     var snsparams = {
         Message: 'User successfully created',
         Subject: 'Tim15 registration notification',
         TopicArn: 'arn:aws:sns:eu-central-1:260436118818:DatabaseTopic'
       };
     var user = JSON.parse(event.body)
+    if (!isCorrectData(user)) {
+      return {
+  statusCode: 404,
+  headers: {
+            "Access-Control-Allow-Headers" : "Content-Type",
+            "Access-Control-Allow-Origin": "http://localhost:4200",
+            "Access-Control-Allow-Methods": "OPTIONS,POST,GET, PUT"
+        },
+  body: JSON.stringify("Data is not correct")
+}
+    }
     
     const params = {
   TableName : 'serverlessUsers',
@@ -133,6 +144,17 @@ async function sendMail(subject, data) {
         console.log("FAILURE IN SENDING MAIL!!", e);
       }  
   return;
+}
+
+function isCorrectData(user) {
+  if (user.username == "" || user.name == "" || user.surname == "" || user.birthday == "" || user.email == "" || user.password == ""){
+    return false
+  }
+  if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(user.email))
+  {
+    return true
+  }
+  return false
 }
   
 

@@ -12,11 +12,13 @@ export class GalleryViewComponent implements OnInit {
 
   files: GalleryFile[] = []
   subAlbums = []
-  albumName: string = 'mico/root'  //TODO
+  albumName: string = localStorage.getItem('username') + '/root'  //TODO
   statusMessage: string = ''
   newAlbumName: string = 'New album name'
 
-  buttons: MyButton[] = [];
+  buttons: MyButton[] = []
+  albumOptions = []
+  selectedAlbum: any
 
   @Output() albumValueChanged = new EventEmitter<string>();
   onAlbumChange() {
@@ -84,8 +86,7 @@ export class GalleryViewComponent implements OnInit {
       this.statusMessage = 'Created album.'
       this.buttons.push({label: this.newAlbumName+'/'+this.newAlbumName, s3Link: this.albumName+'/'+this.newAlbumName})
     } catch (error) {
-      console.error('Error creating album: ', error)
-      this.statusMessage = 'Error creating album.'
+      this.statusMessage = 'Error moving file.'
     } 
   }
 
@@ -96,6 +97,9 @@ export class GalleryViewComponent implements OnInit {
     this.loadSubAlbums()
   }
 
+  clickMove(file: GalleryFile) {
+
+  }
 }
 
 interface MyButton {

@@ -278,6 +278,24 @@ functions:
           method: post
           cors: true
 
+  getOtherAlbums:
+      handler: view/getOtherAlbums.get
+      package:
+        include: 'view/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: album/getOtherAlbums
+          method: post
+          cors: true
+
 resources:
   Resources:
 

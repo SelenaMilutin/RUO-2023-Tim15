@@ -75,18 +75,20 @@ export class GalleryViewComponent implements OnInit {
     //   this.statusMessage = 'Error loading sub albums.'
     // } 
 
-    console.log(this.albumName)
+    // console.log(this.albumName)
     const params = {
       sub: this.albumName,
       type: "ALBUM"
     }
 
     let albums: any = await this.http.post(keys.apiGateway + 'getAlbumsOrFiles', params).toPromise()
+    console.log("albums")
+    console.log(albums)
     let nextIdx: number = this.albumName.split("\/").length
     console.log(nextIdx)
 
     this.subAlbums = []
-
+    let temp: string[] = []
     albums.forEach((album: any) => {
       let fullName: string = album.s3Link
       if (fullName == this.albumName)
@@ -94,7 +96,13 @@ export class GalleryViewComponent implements OnInit {
 
       let next: string = this.albumName + "/" + fullName.split("\/")[nextIdx]
       console.log(next)
-      this.subAlbums.push(next)
+      temp.push(next)
+    });
+
+    temp.forEach((name: string) => {
+      if (this.subAlbums.includes(name))
+        return
+      this.subAlbums.push(name)
     });
 
     this.buttons = []
@@ -168,17 +176,17 @@ export class GalleryViewComponent implements OnInit {
     console.log(albums)
     console.log(files)
 
-    // files.forEach(async (file: any) => {
-    //   await this.clickDelete(file)
-    // });
+    files.forEach(async (file: any) => {
+      await this.clickDelete(file)
+    });
 
-    // albums.forEach(async (album: any) => {
-    //   const params = {
-    //     s3Link: album.s3Link
-    //   }
-    //   await this.http.post(keys.apiGateway + 'deleteAlbum', params).toPromise()
-    //   console.log("deleted album")
-    // })
+    albums.forEach(async (album: any) => {
+      const params = {
+        s3Link: album.s3Link
+      }
+      await this.http.post(keys.apiGateway + 'deleteAlbum', params).toPromise()
+      console.log("deleted album")
+    })
 
   }
 

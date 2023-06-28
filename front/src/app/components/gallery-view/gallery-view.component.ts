@@ -1,7 +1,10 @@
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { Album, GalleryFile } from 'src/app/models/models';
+import { Album, GalleryFile, UploadRequest } from 'src/app/models/models';
 import { AlbumsService } from 'src/app/services/gallery/albums.service';
+import { DeleteService } from 'src/app/services/gallery/delete.service';
 import { ViewService } from 'src/app/services/gallery/view.service';
+import { keys } from 'src/environments/keys';
 
 @Component({
   selector: 'app-gallery-view',
@@ -26,7 +29,8 @@ export class GalleryViewComponent implements OnInit {
   }
 
   constructor(private readonly viewService: ViewService, 
-    private readonly albumsService: AlbumsService) { }
+    private readonly albumsService: AlbumsService,
+    private readonly deleteService: DeleteService) { }
 
   ngOnInit(): void {
     this.loadFiles()
@@ -67,8 +71,35 @@ export class GalleryViewComponent implements OnInit {
     } 
   }
 
-  clickDelete(file: GalleryFile) {
+  async clickDelete(file: GalleryFile) {
+    const request:UploadRequest = {method: "post",
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': ""
+        },
+      body: {
+          fileName: file.fileName,
+          fileType: file.fileType,
+          fileSize: file.fileSize,
+          dateCreated: file.dateCreated,
+          dateModified: file.dateModified,
+          description: file.description,
+          tags: file.tags,
+          fileOwner: file.fileOwner,
+          hasAccess: file.hasAccess,
+          s3Name: file.s3Name,
+          albumName: file.albumName,
+          file: "any"
+      }}
 
+    try {
+      this.files = await this.deleteService.delete(request);
+      alert("Deleted file")
+      console.log(this.files)
+    } catch (error) {
+      console.error('Error loading items: ', error)
+      this.statusMessage = 'Error loading files.'
+    } 
   }
 
   clickDownload(file: GalleryFile) {

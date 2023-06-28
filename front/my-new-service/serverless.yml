@@ -312,6 +312,41 @@ functions:
           path: edit
           method: post
           cors: true
+  moveS3:
+      handler: move/moveS3.move
+      package:
+        include: 'move/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: move
+          method: post
+          cors: true
+  moveDDB:
+      handler: move/moveDDB.move
+      package:
+        include: 'move/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: move
+          method: post
+          cors: true
+          
 resources:
   Resources:
 
@@ -449,3 +484,23 @@ stepFunctions:
             # Is end state
             End: true
 
+    moveStepFunction:
+      name: 'moveStepFunction'
+      events:
+      - http:
+          path: album/move
+          method: POST
+          cors: true
+      definition:
+        StartAt: MoveS3
+        States:
+          MoveS3:
+            Type: Task
+            Resource: "arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${self:provider.stage}-moveS3"
+            ResultPath: $.moveS3Result
+            Next: MoveDDB
+          MoveDDB:
+            Type: Task
+            Resource: "arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${self:provider.stage}-moveDDB"
+            InputPath: $.moveS3Result
+            End: True

@@ -24,7 +24,7 @@ module.exports.delete = async (event, context) => {
                       "Access-Control-Allow-Origin": "http://localhost:4200",
                       "Access-Control-Allow-Methods": "OPTIONS,POST,GET, PUT"
                   },
-            body: JSON.stringify("Nalog created successfully!")
+            body: JSON.stringify("Item successfully deleted!")
           }
             } catch (err) {
               return {

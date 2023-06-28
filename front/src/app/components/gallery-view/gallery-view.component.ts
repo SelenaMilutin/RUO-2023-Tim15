@@ -136,8 +136,15 @@ export class GalleryViewComponent implements OnInit {
     this.loadSubAlbums()
   }
 
-  clickMove(file: GalleryFile) {
-
+  async clickMove(file: GalleryFile) {
+    this.statusMessage = ''
+    try {
+      let res = await this.albumsService.moveFile(file, this.selectedAlbum);
+      console.log(res)
+      this.statusMessage = res.body
+    } catch (error) {
+      this.statusMessage = 'Error moving file.'
+    } 
   }
 
   async loadOtherAlbums() {

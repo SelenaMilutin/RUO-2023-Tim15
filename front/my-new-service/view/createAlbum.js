@@ -12,7 +12,7 @@ module.exports.post = async (event, context) => {
     if (newAlbumName.includes('/')) return createResponse(400, 'Invalid request.');
 
     var object = {
-        TableName: 'gst-serverlessAlbums',
+        TableName: 'serverlessAlbums',
         Item: {
           "s3Link": s3Link+'/'+newAlbumName,
           "albumName": newAlbumName,
@@ -21,7 +21,7 @@ module.exports.post = async (event, context) => {
     }
 
     const params = {
-      TableName: 'gst-serverlessAlbums',
+      TableName: 'serverlessAlbums',
       Key: {
         s3Link: s3Link
       },

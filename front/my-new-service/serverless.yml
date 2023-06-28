@@ -329,7 +329,7 @@ resources:
     albumsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: gst-serverlessAlbums
+        TableName: serverlessAlbums
         AttributeDefinitions:
           - AttributeName: s3Link
             AttributeType: S

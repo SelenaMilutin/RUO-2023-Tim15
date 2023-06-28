@@ -17,7 +17,7 @@ module.exports.get = async (event, context) => {
     var hasAccess = body.hasAccess
 
     var params = {
-        TableName: 'gst-serverlessGallery',
+        TableName: 'serverlessGallery',
         FilterExpression: 'albumName = :albumNameVal and hasAccess = :hasAccessVal',
         ExpressionAttributeValues: {
         ':albumNameVal': albumName,

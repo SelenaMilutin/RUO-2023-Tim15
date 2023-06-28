@@ -11,7 +11,7 @@ module.exports.get = async (event, context) => {
     var s3Link = body.s3Link
 
     var params = {
-        TableName: 'gst-serverlessAlbums',
+        TableName: 'serverlessAlbums',
         KeyConditionExpression: '#hashKey = :hashKeyValue',
         ExpressionAttributeNames: {
           '#hashKey': 's3Link',
@@ -24,7 +24,7 @@ module.exports.get = async (event, context) => {
 
     try {
         const data = await docClient.query(params).promise();
-        return createResponse(200, {body: data.Items});
+        return createResponse(200, {body: data.Items[0]});
     } catch (error) {
         console.error('Error:', error);
         return createResponse(500, 'Error');

@@ -11,7 +11,7 @@ module.exports.get = async (event, context) => {
     var s3Link = body.s3Link
 
     var params = {
-        TableName: 'gst-serverlessAlbums',
+        TableName: 'serverlessAlbums',
         KeyConditionExpression: '#hashKey = :hashKeyValue',
         ExpressionAttributeNames: {
           '#hashKey': 's3Link',

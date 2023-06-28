@@ -51,7 +51,11 @@ export class GalleryViewComponent implements OnInit {
     try {
       let res = await this.albumsService.getSubAlbums(this.albumName);
       console.log(res)
-      this.subAlbums = res.subAlbums
+      if (res.length === 0)  {
+        this.subAlbums = []; 
+        return;
+      }
+      else this.subAlbums = res.subAlbums
       for (let album of this.subAlbums) {
         this.buttons.push({label: album, s3Link: album})
       }

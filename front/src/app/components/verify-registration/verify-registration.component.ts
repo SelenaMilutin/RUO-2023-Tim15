@@ -15,10 +15,12 @@ export class VerifyRegistrationComponent implements OnInit {
   }
 
   verify() {
+    const user = JSON.parse(localStorage.getItem("user") || "")
     const params = new HttpParams().set("", "")
     this.http.put(keys.apiGateway + "user", 
     {
-      "email": "sele@smail.com"
+      "email": "sele@gmail.com",
+      "callerUsername": user.username
     }
     , {headers: new HttpHeaders().set("content-type", "application/json")})
     .subscribe(

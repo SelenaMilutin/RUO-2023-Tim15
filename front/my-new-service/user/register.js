@@ -60,7 +60,9 @@ try {
         Item: {
           "s3Link": user.username + "/root",
           "albumName": "root",
-          "subAlbums": []
+          "subAlbums": [],
+          "fileOwner": user.username, 
+          "hasAccess": [user.username]
         }
       };
       try {
@@ -158,3 +160,13 @@ function isCorrectData(user) {
 }
   
 
+function isCorrectData(user) {
+  if (user.username == "" || user.name == "" || user.surname == "" || user.birthday == "" || user.email == "" || user.password == ""){
+    return false
+  }
+  if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(user.email))
+  {
+    return true
+  }
+  return false
+}

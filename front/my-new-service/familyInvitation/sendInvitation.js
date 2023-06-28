@@ -7,7 +7,7 @@ const ses = new AWS.SES({region: 'eu-central-1'});
 module.exports.sendInvitation= async (event, context) => {
   var user = JSON.parse(event.body);
   const snsparams = {
-        Message: 'you have been invited by' + event.callerUsername + "register on http://localhost:4200/registerByInvitation",
+        Message: 'you have been invited by' + user.callerUsername + "register on http://localhost:4200/registerByInvitation",
         Subject: 'Tim15 registration notification',
         TopicArn: 'arn:aws:sns:eu-central-1:260436118818:DatabaseTopic'
       };

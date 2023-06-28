@@ -16,8 +16,9 @@ export class InviteFamilyComponent implements OnInit {
   }
 
   sendInvitation(): void {
+    const user = JSON.parse(localStorage.getItem("user") || "")
     this.http.put(keys.apiGateway + "famillyInvitation", 
-    {"callerUsername":"user.callerUsername",
+    {"callerUsername":user.username,
      "email": this.newMail,
     }
     , {headers: new HttpHeaders().set('Content-Type', 'application/json')})

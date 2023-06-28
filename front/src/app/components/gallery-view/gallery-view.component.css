@@ -20,7 +20,6 @@ mat-card {
  }
 
 .grid { 
-    padding-top: 5vh;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     grid-gap: 3px;
@@ -77,4 +76,14 @@ a {
 ::ng-deep mat-icon{
     margin-left: 2vh;
     margin-right: 1vh;
+}
+
+.button-grid {
+    display: flex;
+    width: 100%;
+    padding-left: 16px;
+  }
+
+.status {
+    text-align: center;
 }

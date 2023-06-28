@@ -18,6 +18,7 @@ provider:
         - dynamodb:DeleteItem
       Resource:
         - "Fn::GetAtt": [galleryTable, Arn]
+        - "Fn::GetAtt": [albumsTable, Arn]
     - Effect: Allow
       Action:
         - s3:ListBucket
@@ -93,6 +94,42 @@ functions:
           path: view
           method: post
           cors: true
+
+  getSubAlbums:
+      handler: view/getSubAlbums.get
+      package:
+        include: 'view/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: album
+          method: post
+          cors: true
+
+  createAlbum:
+      handler: view/createAlbum.post
+      package:
+        include: 'view/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: album/create
+          method: post
+          cors: true
   
 resources:
   Resources:
@@ -115,6 +152,20 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: gst.milostim15.gallery
+
+    albumsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: gst-serverlessAlbums
+        AttributeDefinitions:
+          - AttributeName: s3Link
+            AttributeType: S
+        KeySchema:
+          - AttributeName: s3Link
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
 
 stepFunctions:
   stateMachines:

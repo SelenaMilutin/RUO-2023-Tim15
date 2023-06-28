@@ -46,7 +46,7 @@ export class UploadComponent implements OnInit {
     try {
       fileContent = await this.readFileAsBase64(this.file);
     } catch {
-      this.uploadStatusMessage = "Error. File too large or invalid type."
+      this.uploadStatusMessage = "Error. File of invalid size or invalid type."
       return;
     }
     let req : UploadRequest = {
@@ -61,7 +61,7 @@ export class UploadComponent implements OnInit {
         fileSize: this.file.size,
         description: this.fileDescription,
         tags: this.tags,
-        owner: owner,
+        fileOwner: owner,
         hasAccess: owner,
         albumName: this.currentAlbumName,
         file: fileContent

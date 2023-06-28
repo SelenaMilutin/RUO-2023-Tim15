@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as AWS from 'aws-sdk';
-import { GalleryFile, ViewRequest } from 'src/app/models/models';
+import { Album, GalleryFile, ViewRequest } from 'src/app/models/models';
 import { keys } from 'src/environments/keys';
 
 @Injectable({

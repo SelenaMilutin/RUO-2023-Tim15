@@ -1,0 +1,199 @@
+service: gallery-service
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: dev
+  region: eu-central-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - "Fn::GetAtt": [galleryTable, Arn]
+        - "Fn::GetAtt": [albumsTable, Arn]
+    - Effect: Allow
+      Action:
+        - s3:ListBucket
+      Resource:
+        - arn:aws:s3:::gst.milostim15.gallery
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+      Resource:
+        - arn:aws:s3:::gst.milostim15.gallery/*
+    - Effect: Allow
+      Action:
+        - states:StartExecution
+        - states:StopExecution
+        - states:DescribeExecution
+        - states:ListExecutions
+        - states:ListStateMachines
+        - states:DescribeStateMachine
+        - states:GetExecutionHistory
+      Resource:
+        - "arn:aws:states:*:*:stateMachine:*"
+        - "arn:aws:states:*:*:execution:*"
+
+package:
+ individually: True
+ patterns:
+   - '!**/**'
+   - 'utility/**'
+
+functions:
+
+  uploadS3:
+      handler: upload/uploadS3.upload
+      package:
+        include: 'upload/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+
+  uploadDDB:
+      handler: upload/uploadDDB.upload
+      package:
+        include: 'upload/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+
+  getFromAlbum:
+      handler: view/getFromAlbum.get
+      package:
+        include: 'view/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: view
+          method: post
+          cors: true
+
+  getSubAlbums:
+      handler: view/getSubAlbums.get
+      package:
+        include: 'view/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: album
+          method: post
+          cors: true
+
+  createAlbum:
+      handler: view/createAlbum.post
+      package:
+        include: 'view/**'
+      url:
+        cors:
+          allowedOrigins:
+            - '*'
+          allowedHeaders:
+            - Authorization
+          allowedMethods:
+            - POST
+      events:
+      - http:
+          path: album/create
+          method: post
+          cors: true
+  
+resources:
+  Resources:
+
+    galleryTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: gst-serverlessGallery
+        AttributeDefinitions:
+          - AttributeName: s3Name
+            AttributeType: S
+        KeySchema:
+          - AttributeName: s3Name
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+    galleryBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: gst.milostim15.gallery
+
+    albumsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: gst-serverlessAlbums
+        AttributeDefinitions:
+          - AttributeName: s3Link
+            AttributeType: S
+        KeySchema:
+          - AttributeName: s3Link
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+stepFunctions:
+  stateMachines:
+    uploadStepFunction:
+      name: 'gst-uploadStepFunction'
+      events:
+      - http:
+          path: /upload
+          method: POST
+          request:
+            schema:
+              $ref: ./models/uploadRequest.json
+          cors: true
+      definition:
+        StartAt: UploadS3
+        States:
+          # State key
+          UploadS3:
+            Type: Task
+            Resource: "arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${self:provider.stage}-uploadS3"
+            ResultPath: $.uploadS3Result
+            Next: UploadDDB
+          UploadDDB:
+            Type: Task
+            Resource: "arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${self:provider.stage}-uploadDDB"
+            InputPath: $.uploadS3Result
+            # Is end state
+            End: true
+
+plugins:
+  - serverless-step-functions

@@ -1,0 +1,64 @@
+<div class="page">
+
+    <app-upload [currentAlbumName]="albumName"></app-upload>
+    
+    <h2>Album name: {{albumName}}</h2>
+    <button mat-button (click)="deleteAlbum(albumName)">Delete album</button>
+    
+    <p class="status">{{statusMessage}}</p>
+    <h3>Sub albums</h3>
+    <div class="button-grid">
+        <mat-button-toggle-group>
+            <mat-button-toggle *ngFor="let button of buttons" (click)="clickSubAlbum(button)">
+                <mat-icon>photo</mat-icon>
+                {{ button.label }}
+            </mat-button-toggle>
+        </mat-button-toggle-group>
+        <textarea [(ngModel)]="newAlbumName"></textarea>
+        <button mat-button (click)="clickAddAlbum()">Add</button>
+    </div>
+    
+    <h3>Album contents</h3>
+    <div class="grid">
+        <div *ngFor="let file of files">
+            <mat-card>
+                <mat-card-header class="locations" >
+                    <div class="title">
+                        <mat-card-title>{{file.fileName}}</mat-card-title>
+                        <button mat-button id="delete-btn" (click)="clickDelete(file)"><mat-icon>delete</mat-icon></button>
+                    </div>
+                    <div class="locations">
+                        <mat-card-subtitle>{{file.dateCreated}}</mat-card-subtitle>
+                        <mat-card-subtitle>{{file.fileSize}}</mat-card-subtitle>
+                    </div>
+                    </mat-card-header>
+                <mat-divider></mat-divider>
+                <mat-card-content>
+                    <h3>Details</h3>
+                    <p>Created by: {{file.fileOwner}}</p>
+                    <p><mat-icon>edit</mat-icon>Last modified: {{file.dateModified}}</p>
+                    <p><mat-icon>insert_drive_file</mat-icon>File type: {{file.fileType}}</p>
+                    <p><mat-icon>short_text</mat-icon>Description</p>
+                    <p>{{file.description}}</p>
+                    <div *ngFor="let tag of file.tags">
+                        <p>tag</p>
+                    </div>
+                    <mat-form-field>
+                        <mat-label>Select an option</mat-label>
+                        <mat-select [(value)]="selectedAlbum">
+                          <mat-option>None</mat-option>
+                          <mat-option *ngFor="let option of albumOptions" [value]="option">{{ option }}</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                    <button mat-button (click)="clickMove(file)">Move</button>
+                </mat-card-content>
+                <mat-card-actions align="end">
+
+                    <button mat-button (click)="clickDownload(file)" >Download</button>
+                    <button mat-button (click)="edit(file)">Edit</button>
+                  </mat-card-actions>
+              </mat-card>
+        </div>
+    </div>
+
+</div>

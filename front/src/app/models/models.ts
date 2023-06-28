@@ -23,6 +23,59 @@ export interface Document {
     tag: string
 }
 
+export interface UploadRequest {
+    method: string,
+    headers: {
+        'Content-Type': string
+        'Authorization': string
+      };
+    body: {
+        fileName: string
+        fileType: string
+        fileSize: number
+        dateCreated?: string
+        dateModified?: string
+        description: string
+        tags: string[]
+        fileOwner: string
+        hasAccess: string
+        s3Name?: string
+        albumName: string
+        file: any
+    }
+}
+
+export interface GalleryFile {
+    fileName: string
+    fileType: string
+    fileSize: number
+    dateCreated: string
+    dateModified: string
+    description: string
+    tags: string[]
+    fileOwner: string
+    hasAccess: string
+    s3Name: string
+    albumName: string
+}
+
+export interface ViewRequest {
+    method: string,
+    headers: {
+        'Content-Type': string
+        'Authorization': string
+      };
+    body: {
+        albumName: string,
+        hasAccess: string
+    }
+}
+
+export interface Album {
+    albumName: string
+    s3Link: string
+}
+
 // 
 
 

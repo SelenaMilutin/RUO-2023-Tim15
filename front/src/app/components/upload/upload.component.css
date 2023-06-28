@@ -15,3 +15,14 @@ button:hover {
 p {
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
+
+.file-staging-area {
+    display: flex;
+    flex-direction: column;
+    margin-top: 2vh;
+    width: 40vw;
+}
+
+::ng-deep .tags input {
+    margin-top: 3vh !important;
+}

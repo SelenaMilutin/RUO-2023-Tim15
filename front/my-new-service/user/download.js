@@ -1,4 +1,5 @@
-const s3 = new AWS.S3();
+const AWS = require('aws-sdk');
+const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 
 module.exports.handler = async (event, context) => {
 
@@ -9,18 +10,8 @@ module.exports.handler = async (event, context) => {
     Key: body.fileName
   };
 
-  const tempFilePath = body.fileName;
-
   try {
-    const stream = s3.getObject(params).createReadStream();
-
-    const writeStream = fs.createWriteStream(tempFilePath);
-    stream.pipe(writeStream);
-
-    await new Promise((resolve, reject) => {
-      writeStream.on('finish', resolve);
-      writeStream.on('error', reject);
-    });
+    const data = await s3.getObject(params).promise();
 
     return {
       statusCode: 200,
@@ -29,7 +20,7 @@ module.exports.handler = async (event, context) => {
         "Access-Control-Allow-Origin": "http://localhost:4200",
         "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
       },
-      body: JSON.stringify({ body: "Success" }) 
+      body: JSON.stringify({ body: data.Body }) 
     }
   } catch (error) {
     console.error('Error downloading file:', error);
